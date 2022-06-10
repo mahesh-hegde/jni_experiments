@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/x86_64-linux-gnu-gcc-10",
+      "-DDART_SHARED_LIB",
+      "-Djni_EXPORTS",
+      "-I/usr/lib/jvm/default-java/include",
+      "-I/usr/lib/jvm/default-java/include/linux",
+      "-fPIC",
+      "-o",
+      "CMakeFiles/jni.dir/dartjni.c.o",
+      "-c",
+      "/home/mahesh/Code/Flutter/jnigen/jni/src/dartjni.c"
+    ],
+    "directory": "/home/mahesh/Code/Flutter/jnigen/jni/src",
+    "file": "/home/mahesh/Code/Flutter/jnigen/jni/src/dartjni.c",
+    "output": "/home/mahesh/Code/Flutter/jnigen/jni/src/CMakeFiles/jni.dir/dartjni.c.o"
+  }
+]

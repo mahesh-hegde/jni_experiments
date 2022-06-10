@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mahesh/Code/Flutter/jnigen/jni/src/dartjni.c
+dartjni.h
+/home/mahesh/Code/Flutter/jnigen/jni/src/dartjni.h
+jni.h
+-
+threads.h
+-
+stdint.h
+-
+
+/home/mahesh/Code/Flutter/jnigen/jni/src/dartjni.h
+stdint.h
+-
+stdio.h
+-
+jni.h
+-
+stdlib.h
+-
+windows.h
+-
+pthread.h
+-
+unistd.h
+-
+
+/usr/lib/jvm/default-java/include/jni.h
+stdio.h
+-
+stdarg.h
+-
+jni_md.h
+/usr/lib/jvm/default-java/include/jni_md.h
+
+/usr/lib/jvm/default-java/include/linux/jni_md.h
+

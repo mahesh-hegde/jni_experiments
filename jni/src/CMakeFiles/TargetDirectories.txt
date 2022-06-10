@@ -1,0 +1,3 @@
+/home/mahesh/Code/Flutter/jnigen/jni/src/CMakeFiles/rebuild_cache.dir
+/home/mahesh/Code/Flutter/jnigen/jni/src/CMakeFiles/edit_cache.dir
+/home/mahesh/Code/Flutter/jnigen/jni/src/CMakeFiles/jni.dir

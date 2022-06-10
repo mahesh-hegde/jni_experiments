@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC -shared -Wl,-soname,libdartjni.so -o libdartjni.so CMakeFiles/jni.dir/dartjni.c.o  -Wl,-rpath,/usr/lib/jvm/default-java/lib:/usr/lib/jvm/default-java/lib/server /usr/lib/jvm/default-java/lib/libjawt.so /usr/lib/jvm/default-java/lib/server/libjvm.so 
