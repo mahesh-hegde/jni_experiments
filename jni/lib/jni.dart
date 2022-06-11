@@ -11,9 +11,6 @@ typedef _GetJniEnvType = Pointer<JNIEnv> Function();
 
 typedef _SpawnJvmType = Pointer<JNIEnv> Function(Pointer<JavaVMInitArgs>);
 
-typedef CreateJavaVMNativeType = Int64 Function(Pointer<Pointer<JavaVM>>, Pointer<Pointer<JNIEnv>>, Pointer<Pointer<Utf8>> args);
-typedef CreateJavaVMDartType = int Function(Pointer<Pointer<JavaVM>>, Pointer<Pointer<JNIEnv>>, Pointer<Pointer<Utf8>> args);
-
 final _helperNullError = Exception("Helpers library is not loaded!");
 final _helperPathNeededError = Exception("JNI Helpers are not loaded! Please provide a helpersLibraryPath argument");
 
@@ -75,10 +72,16 @@ DynamicLibrary? _helpersDll = () {
 	}
 }();
 
-bool isInitialized() {
-	return _helpersDll == null;
+// Returns if helpers library is loaded
+bool isHelpersLibraryLoaded() {
+	return _helpersDll != null;
 }
 
+// Spawns a JVM on non-android platforms for use by JNI.
+// 
+// If [helpersLibraryPath] is provided, it's used to load dartjni helper library.
+// On flutter, the framework takes care of library loading. But this can be helpful
+// on dart standalone target.
 Pointer<JNIEnv> spawnJvm({String? helpersLibraryPath, JavaVMInitArgs? args}) {
 	if (helpersLibraryPath != null) {
 		final dll = DynamicLibrary.open(helpersLibraryPath);
@@ -100,13 +103,18 @@ Pointer<JNIEnv> spawnJvm({String? helpersLibraryPath, JavaVMInitArgs? args}) {
 	return res;
 }
 
-String getJniVersion() {
+String toJavaString(int n) {
 	final envPtr = getJniEnv();
-	final env = envPtr.value;
-	GetVersionDartType getVersion = env.ref.GetVersion.asFunction();
-	final version = getVersion(envPtr);
-	final majorVersion = version >> 16;
-	final minorVersion = version & 0xFFFF;
-	return "$majorVersion $minorVersion";
+	Pointer<Char> toCharPtr(String s) => s.toNativeUtf8().cast<Char>();
+	final cls = envPtr.FindClass(envPtr, "java/lang/String".toNativeUtf8().cast<Char>());
+	envPtr.ExceptionDescribe(envPtr);
+	final mId = envPtr.GetStaticMethodID(envPtr, cls, toCharPtr("valueOf"), toCharPtr("(I)Ljava/lang/String;"));
+	final i = calloc<jvalue>();
+	i.ref.i = n;
+	final res = envPtr.CallStaticObjectMethodA(envPtr, cls, mId, i);
+	final resChars = envPtr.GetStringUTFChars(envPtr, res, nullptr)
+			.cast<Utf8>()
+			.toDartString();
+	return resChars;
 }
 

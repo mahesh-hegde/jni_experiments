@@ -18,12 +18,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late String jniVersion;
+  late String _stringFromJni;
 
   @override
   void initState() {
     super.initState();
-    jniVersion = jni.getJniVersion();
+    _stringFromJni = jni.toJavaString(22103);
   }
 
   @override
@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 spacerSmall,
                 Text(
-                  'JNI Version = $jniVersion',
+                  '"$_stringFromJni"',
                   style: textStyle,
                   textAlign: TextAlign.center,
                 ),
