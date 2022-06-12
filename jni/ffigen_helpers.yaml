@@ -1,0 +1,62 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: JniBindings
+description: |
+  Bindings for libdartjni.so which is part of jni plugin.
+  It also transitively includes type definitions such as JNIEnv from third_party/jni.h;
+  However, functions prefixed JNI_ are not usable because they are in a different shared library.
+  (You can try to initialize a JniBindings with a different Dylib like libjvm.so or DynamicLibrary.process
+    if you really want to access these functions.)
+  Regenerate bindings with `dart run ffigen --config ffigen_jni.yaml`.
+output: 'lib/jni_bindings_generated.dart'
+headers:
+  entry-points:
+    - 'src/dartjni.h'
+  include-directives:
+    - 'src/dartjni.h'
+    - 'third_party/jni.h'
+compiler-opts:
+  - '-Ithird_party/'
+functions:
+  exclude: # Exclude init functions supposed to be defined in loaded DLL, not JNI
+    - 'JNI_OnLoad'
+    - 'JNI_OnUnload'
+    - 'JNI_OnLoad_L'
+    - 'JNI_OnUnload_L'
+
+typedefs:
+  rename:
+    'JNI(.*)': 'Jni$1'
+    'jint': 'JInt'
+    'jclass': 'JClass'
+    'jobject': 'JObject'
+    'jbyte': 'JByte'
+    'jsize': 'JSize'
+    'jmethodID': 'JMethodID'
+    'jfieldID': 'JFieldID'
+    'jboolean': 'JBoolean'
+    'jthrowable': 'JThrowable'
+    'jchar': 'JChar'
+    'jshort': 'JShort'
+    'jlong': 'JLong'
+    'jfloat': 'JFloat'
+    'jdouble': 'JDouble'
+    'jstring': 'JString'
+    'jarray': 'JArray'
+    'jobjectArray': 'JObjectArray'
+    'jbooleanArray': 'JBooleanArray'
+    'jbyteArray': 'JByteArray'
+    'jcharArray': 'JCharArray'
+    'jshortArray': 'JShortArray'
+    'jintArray': 'JIntArray'
+    'jlongArray': 'JLongArray'
+    'jfloatArray': 'JFloatArray'
+    'jdoubleArray': 'JDoubleArray'
+    'jweak': 'JWeak'
+preamble: |
+  // ignore_for_file: always_specify_types
+  // ignore_for_file: camel_case_types
+  // ignore_for_file: non_constant_identifier_names
+comments:
+  style: any
+  length: full
+

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 
+import 'dart:ffi';
+
 import 'package:jni/jni.dart' as jni;
 
 void main() {

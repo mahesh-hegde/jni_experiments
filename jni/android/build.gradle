@@ -34,7 +34,7 @@ android {
 
 	// My android studio already has Many NDKs
 	// Whoever writes android studio has no concern for bandwidth
-    // ndkVersion "21.1.6352462"
+    ndkVersion "23.1.7779620"
 
     // Invoke the shared CMake build with the Android Gradle Plugin.
     externalNativeBuild {
