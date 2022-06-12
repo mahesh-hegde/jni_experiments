@@ -132,7 +132,7 @@ static inline void load_static_method(jclass cls, jmethodID *res,
 JNIEXPORT void JNICALL Java_dev_dart_jni_JniPlugin_initializeJni(
     JNIEnv *env, jobject obj, jobject appContext, jobject classLoader) {
 	jniEnv = env;
-	_log(DART_JNI_DEBUG, "LoL\n");
+	jni_log(DART_JNI_DEBUG, "LoL\n");
 	(*env)->GetJavaVM(env, &jni.jvm);
 	jni.mainActivityObject = (*env)->NewGlobalRef(env, obj);
 	jni.classLoader = (*env)->NewGlobalRef(env, classLoader);
