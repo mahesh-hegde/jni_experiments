@@ -22,7 +22,7 @@ static struct {
 
 thread_local JNIEnv *jniEnv = NULL;
 
-int jni_log_level = DART_JNI_INFO;
+int jni_log_level = JNI_INFO;
 
 FFI_PLUGIN_EXPORT
 void SetJNILogging(int level) {
@@ -132,7 +132,7 @@ static inline void load_static_method(jclass cls, jmethodID *res,
 JNIEXPORT void JNICALL Java_dev_dart_jni_JniPlugin_initializeJni(
     JNIEnv *env, jobject obj, jobject appContext, jobject classLoader) {
 	jniEnv = env;
-	jni_log(DART_JNI_DEBUG, "LoL\n");
+	jni_log(JNI_DEBUG, "LoL\n");
 	(*env)->GetJavaVM(env, &jni.jvm);
 	jni.mainActivityObject = (*env)->NewGlobalRef(env, obj);
 	jni.classLoader = (*env)->NewGlobalRef(env, classLoader);
@@ -159,7 +159,7 @@ SpawnJvm(JavaVMInitArgs *initArgs) {
 		vmArgs.ignoreUnrecognized = JNI_TRUE;
 		initArgs = &vmArgs;
 	}
-	jni_log(DART_JNI_DEBUG, "JNI Version: %d\n", initArgs->version);
+	jni_log(JNI_DEBUG, "JNI Version: %d\n", initArgs->version);
 	const long flag =
 	    JNI_CreateJavaVM(&jni.jvm, (void **)&jniEnv, initArgs);
 	if (flag == JNI_ERR) {

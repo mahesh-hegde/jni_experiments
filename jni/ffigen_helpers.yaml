@@ -7,7 +7,7 @@ description: |
   (You can try to initialize a JniBindings with a different Dylib like libjvm.so or DynamicLibrary.process
     if you really want to access these functions.)
   Regenerate bindings with `dart run ffigen --config ffigen_jni.yaml`.
-output: 'lib/jni_bindings_generated.dart'
+output: 'lib/src/jni_bindings_generated.dart'
 headers:
   entry-points:
     - 'src/dartjni.h'
@@ -22,7 +22,9 @@ functions:
     - 'JNI_OnUnload'
     - 'JNI_OnLoad_L'
     - 'JNI_OnUnload_L'
-
+enums:
+  rename:
+    'DartJniLogLevel': 'JniLogLevel'
 typedefs:
   rename:
     'JNI(.*)': 'Jni$1'

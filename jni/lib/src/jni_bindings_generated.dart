@@ -3255,12 +3255,12 @@ class JavaVMInitArgs extends ffi.Struct {
   external int ignoreUnrecognized;
 }
 
-abstract class DART_JNI_LOG_LEVEL {
-  static const int DART_JNI_VERBOSE = 2;
-  static const int DART_JNI_DEBUG = 3;
-  static const int DART_JNI_INFO = 4;
-  static const int DART_JNI_WARN = 5;
-  static const int DART_JNI_ERROR = 6;
+abstract class JniLogLevel {
+  static const int JNI_VERBOSE = 2;
+  static const int JNI_DEBUG = 3;
+  static const int JNI_INFO = 4;
+  static const int JNI_WARN = 5;
+  static const int JNI_ERROR = 6;
 }
 
 const int JNI_FALSE = 0;

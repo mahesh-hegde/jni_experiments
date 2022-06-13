@@ -19,17 +19,6 @@ String _getLibraryFilename(String base) {
   }
 }
 
-DynamicLibrary? _dylib = () {
-  // Is this good or bad? (Env var)
-  final libPath =
-      Platform.environment["DART_JNI_LIB"] ?? _getLibraryFilename("dartjni");
-  try {
-    return DynamicLibrary.open(libPath);
-  } on Exception catch (_) {
-    return null;
-  }
-}();
-
 /// Load Dart-JNI Helper library (libdartjni.so).
 ///
 /// In Flutter, this doesn't need to be called explicitly.
@@ -37,11 +26,12 @@ DynamicLibrary? _dylib = () {
 /// If path is provided, it's used to load the library.
 /// Else it's searched for in the
 /// directory where script / exe is located
-void _loadJniHelpersLibrary({String? path}) {
+DynamicLibrary _loadJniHelpersLibrary({String? path}) {
+  // TODO: On standalone target, look in current directory
   final libPath =
-      path ?? dirname(Platform.script.toFilePath(windows: Platform.isWindows));
+      path ?? _getLibraryFilename("dartjni");
   final dylib = DynamicLibrary.open(libPath);
-  _dylib = dylib;
+  return dylib;
 }
 
 /// Jni represents a single JNI instance running.
@@ -60,7 +50,8 @@ class Jni {
 
   static Jni getInstance() {
     if (Platform.isAndroid) {
-      _instance ??= Jni._(JniBindings(_dylib!));
+      _instance ??= Jni._(JniBindings(
+					  _loadJniHelpersLibrary()));
       return _instance!;
     }
     final inst = _instance;
@@ -72,7 +63,7 @@ class Jni {
 
   static Jni spawn({
     String? helperPath,
-    int logLevel = DART_JNI_LOG_LEVEL.DART_JNI_INFO,
+    int logLevel = JniLogLevel.JNI_INFO,
     List<String> jvmOptions = const [],
     List<String> classPath = const [],
     bool ignoreUnrecognized = false,
@@ -82,18 +73,10 @@ class Jni {
     if (_instance != null) {
       throw Exception("Currently only 1 VM is supported.");
     }
-
-    if (_dylib == null) {
-      if (helperPath == null) {
-        throw Exception("JNI Helpers library not loaded! "
-            "Please provide a helper dylib path to spawn()");
-      }
-      _loadJniHelpersLibrary(path: helperPath);
-    }
-    final inst = Jni._(JniBindings(_dylib!));
+    final dylib = _loadJniHelpersLibrary(path: helperPath);
+    final inst = Jni._(JniBindings(dylib));
     _instance = inst;
     inst._bindings.SetJNILogging(logLevel);
-
     final jArgs = _createVMArgs(
       options: jvmOptions,
       classPath: classPath,
