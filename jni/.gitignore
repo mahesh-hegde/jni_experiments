@@ -1,8 +1,10 @@
 # Miscellaneous
+*.exe
 *.class
 *.log
 *.pyc
 *.swp
+*.so
 .DS_Store
 .atom/
 .buildlog/
@@ -28,3 +30,7 @@ migrate_working_dir/
 .dart_tool/
 .packages
 build/
+src/CMakeFiles/jni.dir/C.includecache
+src/CMakeFiles/jni.dir/dartjni.c.o
+src/.cache/
+src/libdartjni.so

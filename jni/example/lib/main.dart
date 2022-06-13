@@ -1,14 +1,30 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 
+import 'dart:io';
 import 'dart:ffi';
 
-import 'package:jni/jni.dart' as jni;
+import 'package:ffi/ffi.dart';
+import 'package:jni/jni.dart';
+
+late Jni jni;
+
+String localToJavaString(int n) {
+	final jniEnv = jni.getEnv();
+    final cls = jniEnv.FindClass("java/lang/String".toNativeChars());
+    jniEnv.ExceptionDescribe();
+    final mId = jniEnv.GetStaticMethodID(cls, "valueOf".toNativeChars(),
+        "(I)Ljava/lang/String;".toNativeChars());
+    final i = calloc<jvalue>();
+    i.ref.i = n;
+    final res = jniEnv.CallStaticObjectMethodA(cls, mId, i);
+    final resChars =
+        jniEnv.GetStringUTFChars(res, nullptr).cast<Utf8>().toDartString();
+    return resChars;
+}
 
 void main() {
-  if (!Platform.isAndroid) {
-    jni.spawnJvm();
-  }
+  jni = Platform.isAndroid ? Jni.getInstance() 
+		  : Jni.spawn();
   runApp(const MyApp());
 }
 
@@ -25,7 +41,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _stringFromJni = jni.toJavaString(22103);
+    _stringFromJni = localToJavaString(1450);
   }
 
   @override

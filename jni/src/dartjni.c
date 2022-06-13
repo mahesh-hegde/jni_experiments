@@ -36,7 +36,7 @@ void jni_log(int level, const char *format, ...) {
 #ifdef __ANDROID__
 		__android_log_print(level, JNI_LOG_TAG, format, args);
 #else
-		printf("%s: ", JNI_LOG_TAG);
+		fprintf(stderr, "%s: ", JNI_LOG_TAG);
 		vfprintf(stderr, format, args);
 #endif
         va_end(args);
