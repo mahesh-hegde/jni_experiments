@@ -168,7 +168,7 @@ class Jni {
     return JniClass._(cls);
   }
 
-  Pointer<jvalue> jvalues(List<dynamic> args, {Allocator allocator = calloc}) {
+  static Pointer<jvalue> jvalues(List<dynamic> args, {Allocator allocator = calloc}) {
     Pointer<jvalue> result = allocator<jvalue>(args.length);
     for (int i = 0; i < args.length; i++) {
       final arg = args[i];
