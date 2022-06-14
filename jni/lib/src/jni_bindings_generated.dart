@@ -167,9 +167,9 @@ class JniBindings {
       _SetJNILoggingPtr.asFunction<void Function(int)>();
 }
 
-class _jfieldID extends ffi.Opaque {}
+class jfieldID_ extends ffi.Opaque {}
 
-class _jmethodID extends ffi.Opaque {}
+class jmethodID_ extends ffi.Opaque {}
 
 /// JNI invocation interface.
 class JNIInvokeInterface extends ffi.Struct {
@@ -3126,8 +3126,8 @@ typedef JByte = ffi.Int8;
 
 /// "cardinal indices and sizes"
 typedef JSize = JInt;
-typedef JMethodID = ffi.Pointer<_jmethodID>;
-typedef JFieldID = ffi.Pointer<_jfieldID>;
+typedef JMethodID = ffi.Pointer<jmethodID_>;
+typedef JFieldID = ffi.Pointer<jfieldID_>;
 
 /// Primitive types that match up with Java equivalents.
 typedef JBoolean = ffi.Uint8;

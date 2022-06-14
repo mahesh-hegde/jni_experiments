@@ -22,6 +22,11 @@ functions:
     - 'JNI_OnUnload'
     - 'JNI_OnLoad_L'
     - 'JNI_OnUnload_L'
+structs:
+  rename:
+    ## opaque struct definitions, base types of jfieldID and jmethodID
+    '_jfieldID': 'jfieldID_'
+    '_jmethodID': 'jmethodID_'
 enums:
   rename:
     'DartJniLogLevel': 'JniLogLevel'
