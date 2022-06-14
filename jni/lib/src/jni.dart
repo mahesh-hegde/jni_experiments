@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
-import 'package:path/path.dart';
 import 'jni_bindings_generated.dart';
 import 'extensions.dart';
 
@@ -28,14 +27,13 @@ String _getLibraryFilename(String base) {
 /// directory where script / exe is located
 DynamicLibrary _loadJniHelpersLibrary({String? path}) {
   // TODO: On standalone target, look in current directory
-  final libPath =
-      path ?? _getLibraryFilename("dartjni");
+  final libPath = path ?? _getLibraryFilename("dartjni");
   final dylib = DynamicLibrary.open(libPath);
   return dylib;
 }
 
 /// Jni represents a single JNI instance running.
-/// 
+///
 /// It provides convenience functions for looking up and invoking functions
 /// without several FFI conversions.
 ///
@@ -50,8 +48,7 @@ class Jni {
 
   static Jni getInstance() {
     if (Platform.isAndroid) {
-      _instance ??= Jni._(JniBindings(
-					  _loadJniHelpersLibrary()));
+      _instance ??= Jni._(JniBindings(_loadJniHelpersLibrary()));
       return _instance!;
     }
     final inst = _instance;
@@ -137,11 +134,6 @@ class Jni {
     return _bindings.GetJniEnv();
   }
 
-  /// Look up class using platform-specific mechanism.
-  JClass findClass(String name) {
-    return _bindings.LoadClass(name.toNativeChars());
-  }
-
   void setJniLogging(int loggingLevel) {
     _bindings.SetJNILogging(loggingLevel);
   }
@@ -162,11 +154,62 @@ class Jni {
     jniEnv.ExceptionDescribe();
     final mId = jniEnv.GetStaticMethodID(cls, "valueOf".toNativeChars(),
         "(I)Ljava/lang/String;".toNativeChars());
-    final i = calloc<jvalue>();
-    i.ref.i = n;
+	final i = jvalues([n]);
     final res = jniEnv.CallStaticObjectMethodA(cls, mId, i);
+	calloc.free(i);
     final resChars =
         jniEnv.GetStringUTFChars(res, nullptr).cast<Utf8>().toDartString();
     return resChars;
   }
+
+  /// Returns class for [qualifiedName] found by platform-specific mechanism.
+  JniClass findClass(String qualifiedName) {
+    final cls = _bindings.LoadClass(qualifiedName.toNativeChars());
+    return JniClass._(cls);
+  }
+
+  Pointer<jvalue> jvalues(List<dynamic> args, {Allocator allocator = calloc}) {
+    Pointer<jvalue> result = allocator<jvalue>(args.length);
+    for (int i = 0; i < args.length; i++) {
+      final arg = args[i];
+      final pos = result.elementAt(i);
+      switch (arg.runtimeType) {
+        case int:
+          pos.ref.i = arg;
+          break;
+        case bool:
+          pos.ref.z = arg ? 1 : 0;
+          break;
+        case Pointer<Void>:
+          pos.ref.l = arg;
+          break;
+        case double:
+          pos.ref.d = arg;
+          break;
+        default:
+          throw "cannot convert ${arg.runtimeType} to jvalue";
+      }
+    }
+    return result;
+  }
 }
+
+// Wrapper types for easy use
+// and less Pointer<Pointer<Void>> in type signatures
+
+class JniObject {
+  final JObject pointer;
+  JniObject._(this.pointer);
+}
+
+class JniClass extends JniObject {
+  JniClass._(JClass pointer) : super._(pointer);
+  // Call methods
+  // Call constructors
+}
+
+// JValueAllocator(allocator)
+//      jInt(value)
+//      jByte(value)
+//      jObject(Pointer<Void>)
+//      etc..

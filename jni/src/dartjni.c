@@ -30,13 +30,14 @@ void SetJNILogging(int level) {
 }
 
 void jni_log(int level, const char *format, ...) {
+	// TODO: Not working
 	if (level >= jni_log_level) {
 		va_list args;
         va_start(args, format);
 #ifdef __ANDROID__
 		__android_log_print(level, JNI_LOG_TAG, format, args);
 #else
-		fprintf(stderr, "%s: ", JNI_LOG_TAG);
+		// fprintf(stderr, "%s: ", JNI_LOG_TAG);
 		vfprintf(stderr, format, args);
 #endif
         va_end(args);
@@ -132,7 +133,6 @@ static inline void load_static_method(jclass cls, jmethodID *res,
 JNIEXPORT void JNICALL Java_dev_dart_jni_JniPlugin_initializeJni(
     JNIEnv *env, jobject obj, jobject appContext, jobject classLoader) {
 	jniEnv = env;
-	jni_log(JNI_DEBUG, "LoL\n");
 	(*env)->GetJavaVM(env, &jni.jvm);
 	jni.mainActivityObject = (*env)->NewGlobalRef(env, obj);
 	jni.classLoader = (*env)->NewGlobalRef(env, classLoader);
