@@ -9,72 +9,91 @@ import 'package:jni/jni.dart';
 late Jni jni;
 
 String localToJavaString(int n) {
-	final jniEnv = jni.getEnv();
-    final cls = jniEnv.FindClass("java/lang/String".toNativeChars());
-    jniEnv.ExceptionDescribe();
-    final mId = jniEnv.GetStaticMethodID(cls, "valueOf".toNativeChars(),
-        "(I)Ljava/lang/String;".toNativeChars());
-    final i = calloc<JValue>();
-    i.ref.i = n;
-    final res = jniEnv.CallStaticObjectMethodA(cls, mId, i);
-    final resChars =
-        jniEnv.GetStringUTFChars(res, nullptr).cast<Utf8>().toDartString();
-    return resChars;
+  final jniEnv = jni.getEnv();
+  final cls = jniEnv.FindClass("java/lang/String".toNativeChars());
+  jniEnv.ExceptionDescribe();
+  final mId = jniEnv.GetStaticMethodID(
+      cls, "valueOf".toNativeChars(), "(I)Ljava/lang/String;".toNativeChars());
+  final i = calloc<JValue>();
+  i.ref.i = n;
+  final res = jniEnv.CallStaticObjectMethodA(cls, mId, i);
+  final resChars =
+      jniEnv.GetStringUTFChars(res, nullptr).cast<Utf8>().toDartString();
+  return resChars;
 }
 
 void main() {
-  jni = Platform.isAndroid ? Jni.getInstance() 
-		  : Jni.spawn();
-  runApp(const MyApp());
+  jni = Platform.isAndroid ? Jni.getInstance() : Jni.spawn();
+  final examples = [
+    ["Locally defined toJavaString(1332)", () => localToJavaString(1332)],
+    ["JNI library's example", () => jni.toJavaString(720)],
+  ];
+  runApp(MyApp(examples));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp(this.examples, {Key? key}) : super(key: key);
+  final List<List<dynamic>> examples;
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  late String _stringFromJni;
-
   @override
   void initState() {
     super.initState();
-    _stringFromJni = localToJavaString(1450);
   }
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(fontSize: 25);
-    const spacerSmall = SizedBox(height: 10);
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Native Packages'),
+          title: const Text('JNI Examples'),
         ),
-        body: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                const Text(
-                  'This calls a native function through FFI that is shipped as source in the package. '
-                  'The native code is built as part of the Flutter Runner build.',
-                  style: textStyle,
-                  textAlign: TextAlign.center,
-                ),
-                spacerSmall,
-                Text(
-                  '"$_stringFromJni"',
-                  style: textStyle,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
+        body: ListView.builder(
+            itemCount: widget.examples.length,
+            itemBuilder: (context, i) {
+              final eg = widget.examples[i];
+              return ExampleCard(eg[0] as String, eg[1] as dynamic Function());
+            }),
       ),
+    );
+  }
+}
+
+class ExampleCard extends StatefulWidget {
+  const ExampleCard(this.title, this.callback, {Key? key}) : super(key: key);
+
+  final String title;
+  final dynamic Function() callback;
+
+  @override
+  _ExampleCardState createState() => _ExampleCardState();
+}
+
+class _ExampleCardState extends State<ExampleCard> {
+  Widget _pad(Widget w, double h, double v) {
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: h, vertical: v), child: w);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var result = widget.callback();
+    return Card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(widget.title,
+            softWrap: true,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        _pad(Text(result.toString(),
+            softWrap: true, style: const TextStyle(fontFamily: "Monospace")), 8, 16),
+        _pad(ElevatedButton(
+          child: const Text("Run again"),
+          onPressed: () => setState(() {}),
+        ), 8, 8),
+      ]),
     );
   }
 }

@@ -2,9 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Package jni provides dart bindings for JNI on android and desktop platforms.
-/// 
-/// On Android, the existing JVM is used, a new JVM needs to be spawned on desktop platforms.
+/// Package jni provides dart bindings for the Java Native Interface (JNI) on android and desktop platforms.
+///
+/// It's intended as a supplement to the (planned) jnigen tool, a Java wrapper generator using JNI.
+/// The goal is to provide sufficiently complete and ergonomic access to underlying JNI APIs.
+/// Therefore, some understanding of JNI is required to use this module.
+///
+/// __Java VM:__
+/// On Android, the existing JVM is used, a new JVM needs to be spawned on flutter desktop platforms.
+///
+/// ```dart
+/// if (!Platform.isAndroid) {
+///   // Spin up a JVM instance with custom classpath etc..
+///   Jni.spawn(/* options */);
+/// }
+/// Jni jni = Jni.getInstance();
+/// ```
+///
+/// __Dart standalone support:__
+/// This module depends on a shared library written in C, when using dart standalone, it's
+/// your responsibility to:
+///
+///    * Build the library `libdartjni.so`
+///    * Bundle it appropriately with dart application
+///    * Pass the path to library as a parameter to `Jni.spawn()`
+///
+/// __JNIEnv:__
+/// The types `JNIEnv` and `JavaVM` in JNI are available as `JniEnv` and `JavaVM`
+/// respectively, with extension methods to conveniently invoke the function pointer
+/// members. Therefore the calling syntax will be similar to JNI in C++. The first `JniEnv *` parameter is
+/// implicit, a la C++.
 ///
 /// ```dart
 /// import 'package:jni/jni.dart'

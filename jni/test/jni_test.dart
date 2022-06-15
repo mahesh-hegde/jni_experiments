@@ -7,9 +7,10 @@ import 'package:jni/jni.dart';
 late Jni jni;
 
 void main() {
-  jni = Platform.isAndroid
-      ? Jni.getInstance()
-      : Jni.spawn(helperPath: 'src/libdartjni.so');
+  if (!Platform.isAndroid) {
+	Jni.spawn(helperPath: "src/libdartjni.so");
+  }
+  jni = Jni.getInstance();
   test('java toString', () {
     expect(jni.toJavaString(114), equals("114"));
   });
