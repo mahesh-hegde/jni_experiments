@@ -260,7 +260,6 @@ class JNINativeInterface extends ffi.Struct {
           JClass Function(ffi.Pointer<JniEnv1>, ffi.Pointer<ffi.Char>, JObject,
               ffi.Pointer<JByte>, JSize)>> DefineClass;
 
-  /// Finds class using thread's associated classLoader
   external ffi.Pointer<
           ffi.NativeFunction<
               JClass Function(ffi.Pointer<JniEnv1>, ffi.Pointer<ffi.Char>)>>
@@ -372,7 +371,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JObject Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> NewObjectA;
+              ffi.Pointer<JValue>)>> NewObjectA;
 
   external ffi.Pointer<
           ffi.NativeFunction<JClass Function(ffi.Pointer<JniEnv1>, JObject)>>
@@ -401,7 +400,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JObject Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallObjectMethodA;
+              ffi.Pointer<JValue>)>> CallObjectMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -416,7 +415,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JBoolean Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallBooleanMethodA;
+              ffi.Pointer<JValue>)>> CallBooleanMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -431,7 +430,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JByte Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallByteMethodA;
+              ffi.Pointer<JValue>)>> CallByteMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -446,7 +445,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JChar Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallCharMethodA;
+              ffi.Pointer<JValue>)>> CallCharMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -461,7 +460,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JShort Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallShortMethodA;
+              ffi.Pointer<JValue>)>> CallShortMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -476,7 +475,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JInt Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallIntMethodA;
+              ffi.Pointer<JValue>)>> CallIntMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -491,7 +490,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JLong Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallLongMethodA;
+              ffi.Pointer<JValue>)>> CallLongMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -506,7 +505,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JFloat Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallFloatMethodA;
+              ffi.Pointer<JValue>)>> CallFloatMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -521,7 +520,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JDouble Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallDoubleMethodA;
+              ffi.Pointer<JValue>)>> CallDoubleMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -536,7 +535,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-              ffi.Pointer<jvalue>)>> CallVoidMethodA;
+              ffi.Pointer<JValue>)>> CallVoidMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -552,7 +551,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JObject Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualObjectMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualObjectMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -568,7 +567,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JBoolean Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualBooleanMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualBooleanMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -583,7 +582,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JByte Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualByteMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualByteMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -598,7 +597,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JChar Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualCharMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualCharMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -614,7 +613,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JShort Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualShortMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualShortMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -629,7 +628,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JInt Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualIntMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualIntMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -644,7 +643,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JLong Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualLongMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualLongMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -660,7 +659,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JFloat Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualFloatMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualFloatMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -676,7 +675,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JDouble Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualDoubleMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualDoubleMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -692,7 +691,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallNonvirtualVoidMethodA;
+              ffi.Pointer<JValue>)>> CallNonvirtualVoidMethodA;
 
   external ffi.Pointer<
       ffi.NativeFunction<
@@ -809,7 +808,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JObject Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticObjectMethodA;
+              ffi.Pointer<JValue>)>> CallStaticObjectMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -824,7 +823,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JBoolean Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticBooleanMethodA;
+              ffi.Pointer<JValue>)>> CallStaticBooleanMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -839,7 +838,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JByte Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticByteMethodA;
+              ffi.Pointer<JValue>)>> CallStaticByteMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -854,7 +853,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JChar Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticCharMethodA;
+              ffi.Pointer<JValue>)>> CallStaticCharMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -869,7 +868,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JShort Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticShortMethodA;
+              ffi.Pointer<JValue>)>> CallStaticShortMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -884,7 +883,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JInt Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticIntMethodA;
+              ffi.Pointer<JValue>)>> CallStaticIntMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -899,7 +898,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JLong Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticLongMethodA;
+              ffi.Pointer<JValue>)>> CallStaticLongMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -914,7 +913,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JFloat Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticFloatMethodA;
+              ffi.Pointer<JValue>)>> CallStaticFloatMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -929,7 +928,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           JDouble Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticDoubleMethodA;
+              ffi.Pointer<JValue>)>> CallStaticDoubleMethodA;
 
   external ffi.Pointer<
           ffi.NativeFunction<
@@ -944,7 +943,7 @@ class JNINativeInterface extends ffi.Struct {
   external ffi.Pointer<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-              ffi.Pointer<jvalue>)>> CallStaticVoidMethodA;
+              ffi.Pointer<JValue>)>> CallStaticVoidMethodA;
 
   external ffi.Pointer<
       ffi.NativeFunction<
@@ -1076,7 +1075,6 @@ class JNINativeInterface extends ffi.Struct {
           ffi.NativeFunction<JSize Function(ffi.Pointer<JniEnv1>, JString)>>
       GetStringUTFLength;
 
-  /// JNI spec says this returns const jbyte*, but that's inconsistent
   external ffi.Pointer<
           ffi.NativeFunction<
               ffi.Pointer<ffi.Char> Function(
@@ -1419,9 +1417,6 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
             ffi.Pointer<JByte>, int)>()(this, name, loader, buf, bufLen);
   }
 
-  /// Finds class using thread's associated classLoader
-  ///
-  /// This is an automatically generated extension method
   @pragma('vm:prefer-inline')
   JClass FindClass(ffi.Pointer<ffi.Char> name) {
     return value.ref.FindClass.asFunction<
@@ -1586,10 +1581,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   JObject NewObjectA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.NewObjectA.asFunction<
         JObject Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1623,10 +1618,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   JObject CallObjectMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallObjectMethodA.asFunction<
         JObject Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1638,10 +1633,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallBooleanMethodA(
-      JObject obj, JMethodID methodId, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodId, ffi.Pointer<JValue> args) {
     return value.ref.CallBooleanMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodId, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodId, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1653,10 +1648,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallByteMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallByteMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1668,10 +1663,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallCharMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallCharMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1683,10 +1678,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallShortMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallShortMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1698,10 +1693,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallIntMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallIntMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1713,10 +1708,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallLongMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallLongMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1728,10 +1723,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   double CallFloatMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallFloatMethodA.asFunction<
         double Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1743,10 +1738,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   double CallDoubleMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallDoubleMethodA.asFunction<
         double Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1758,10 +1753,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   void CallVoidMethodA(
-      JObject obj, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallVoidMethodA.asFunction<
         void Function(ffi.Pointer<JniEnv1>, JObject, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1774,10 +1769,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   JObject CallNonvirtualObjectMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualObjectMethodA.asFunction<
         JObject Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1789,10 +1784,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallNonvirtualBooleanMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualBooleanMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1804,10 +1799,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallNonvirtualByteMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualByteMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1819,10 +1814,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallNonvirtualCharMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualCharMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1834,10 +1829,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallNonvirtualShortMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualShortMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1849,10 +1844,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallNonvirtualIntMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualIntMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1864,10 +1859,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallNonvirtualLongMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualLongMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1879,10 +1874,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   double CallNonvirtualFloatMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualFloatMethodA.asFunction<
         double Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1894,10 +1889,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   double CallNonvirtualDoubleMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualDoubleMethodA.asFunction<
         double Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -1909,10 +1904,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   void CallNonvirtualVoidMethodA(
-      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JObject obj, JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallNonvirtualVoidMethodA.asFunction<
         void Function(ffi.Pointer<JniEnv1>, JObject, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, obj, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, obj, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2066,10 +2061,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   JObject CallStaticObjectMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticObjectMethodA.asFunction<
         JObject Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2081,10 +2076,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallStaticBooleanMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticBooleanMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2096,10 +2091,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallStaticByteMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticByteMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2111,10 +2106,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallStaticCharMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticCharMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2126,10 +2121,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallStaticShortMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticShortMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2141,10 +2136,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallStaticIntMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticIntMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2156,10 +2151,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   int CallStaticLongMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticLongMethodA.asFunction<
         int Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2171,10 +2166,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   double CallStaticFloatMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticFloatMethodA.asFunction<
         double Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2186,10 +2181,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   double CallStaticDoubleMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticDoubleMethodA.asFunction<
         double Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2201,10 +2196,10 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
 
   @pragma('vm:prefer-inline')
   void CallStaticVoidMethodA(
-      JClass clazz, JMethodID methodID, ffi.Pointer<jvalue> args) {
+      JClass clazz, JMethodID methodID, ffi.Pointer<JValue> args) {
     return value.ref.CallStaticVoidMethodA.asFunction<
         void Function(ffi.Pointer<JniEnv1>, JClass, JMethodID,
-            ffi.Pointer<jvalue>)>()(this, clazz, methodID, args);
+            ffi.Pointer<JValue>)>()(this, clazz, methodID, args);
   }
 
   @pragma('vm:prefer-inline')
@@ -2384,15 +2379,12 @@ extension JNINativeInterfaceExtension on ffi.Pointer<JniEnv> {
         this, string);
   }
 
-  /// JNI spec says this returns const jbyte*, but that's inconsistent
-  ///
-  /// This is an automatically generated extension method
   @pragma('vm:prefer-inline')
   ffi.Pointer<ffi.Char> GetStringUTFChars(
-      JString arg0, ffi.Pointer<JBoolean> arg1) {
+      JString string, ffi.Pointer<JBoolean> isCopy) {
     return value.ref.GetStringUTFChars.asFunction<
         ffi.Pointer<ffi.Char> Function(ffi.Pointer<JniEnv1>, JString,
-            ffi.Pointer<JBoolean>)>()(this, arg0, arg1);
+            ffi.Pointer<JBoolean>)>()(this, string, isCopy);
   }
 
   @pragma('vm:prefer-inline')
@@ -2901,7 +2893,7 @@ class __va_list_tag extends ffi.Struct {
   external ffi.Pointer<ffi.Void> reg_save_area;
 }
 
-class jvalue extends ffi.Union {
+class JValue extends ffi.Union {
   @JBoolean()
   external int z;
 

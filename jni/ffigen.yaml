@@ -27,6 +27,10 @@ structs:
     ## opaque struct definitions, base types of jfieldID and jmethodID
     '_jfieldID': 'jfieldID_'
     '_jmethodID': 'jmethodID_'
+      #'JNI(.*)': 'Jni$1'
+unions:
+  rename:
+    'jvalue': 'JValue'
 enums:
   rename:
     'DartJniLogLevel': 'JniLogLevel'
@@ -59,6 +63,7 @@ typedefs:
     'jfloatArray': 'JFloatArray'
     'jdoubleArray': 'JDoubleArray'
     'jweak': 'JWeak'
+    'jvalue': 'JValue'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

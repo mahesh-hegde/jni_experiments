@@ -14,7 +14,7 @@ String localToJavaString(int n) {
     jniEnv.ExceptionDescribe();
     final mId = jniEnv.GetStaticMethodID(cls, "valueOf".toNativeChars(),
         "(I)Ljava/lang/String;".toNativeChars());
-    final i = calloc<jvalue>();
+    final i = calloc<JValue>();
     i.ref.i = n;
     final res = jniEnv.CallStaticObjectMethodA(cls, mId, i);
     final resChars =

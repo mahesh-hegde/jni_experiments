@@ -29,11 +29,11 @@ void main() {
     }
   });
   test("convert back and forth between dart and java string", () {
-	final env = jni.getEnv();
-	const str = "ABCD EFGH";
-	final jstr = env.NewStringUTF(str.toNativeChars());
-	final djstr = env.GetStringUTFChars(jstr, nullptr).toDartString();
-	expect(str, equals(djstr));
+    final env = jni.getEnv();
+    const str = "ABCD EFGH";
+    final jstr = env.NewStringUTF(str.toNativeChars());
+    final djstr = env.GetStringUTFChars(jstr, nullptr).toDartString();
+    expect(str, equals(djstr));
   });
 
   test("Print something from Java", () {
@@ -45,10 +45,9 @@ void main() {
     final printStream = env.GetObjectClass(out);
     final println = env.GetMethodID(printStream, "println".toNativeChars(),
         "(Ljava/lang/String;)V".toNativeChars());
-    const str = "Hello JNI!";
+    const str = "\nHello JNI!";
     final jstr = env.NewStringUTF(str.toNativeChars());
-	// test runner can't compare what's printed by Java, leaving it
-    //expect(() => env.CallVoidMethodA(out, println, Jni.jvalues([jstr])),
-    //    prints("$str\n"));
+    // test runner can't compare what's printed by Java, leaving it
+    // env.CallVoidMethodA(out, println, Jni.jvalues([jstr]));
   });
 }

@@ -158,18 +158,20 @@ struct JNINativeInterface {
 
     jclass      (*DefineClass)(JNIEnv *env, const char* name, jobject loader, const jbyte* buf,
                         jsize bufLen);
-	/// Finds class using thread's associated classLoader
     jclass      (*FindClass)(JNIEnv* env, const char* name);
 
     jmethodID   (*FromReflectedMethod)(JNIEnv* env, jobject method);
     jfieldID    (*FromReflectedField)(JNIEnv* env, jobject field);
+
     /* spec doesn't show jboolean parameter */
+
     jobject     (*ToReflectedMethod)(JNIEnv* env, jclass cls, jmethodID methodId, jboolean isStatic);
 
     jclass      (*GetSuperclass)(JNIEnv* env, jclass clazz);
     jboolean    (*IsAssignableFrom)(JNIEnv* env, jclass clazz1, jclass clazz2);
 
     /* spec doesn't show jboolean parameter */
+
     jobject     (*ToReflectedField)(JNIEnv* env, jclass cls, jfieldID fieldID, jboolean isStatic);
 
     jint        (*Throw)(JNIEnv* env, jthrowable obj);
@@ -376,8 +378,7 @@ struct JNINativeInterface {
     void        (*ReleaseStringChars)(JNIEnv* env, jstring string, const jchar* isCopy);
     jstring     (*NewStringUTF)(JNIEnv* env, const char* bytes);
     jsize       (*GetStringUTFLength)(JNIEnv* env, jstring string);
-    /* JNI spec says this returns const jbyte*, but that's inconsistent */
-    const char* (*GetStringUTFChars)(JNIEnv* env, jstring string, jboolean*);
+    const char* (*GetStringUTFChars)(JNIEnv* env, jstring string, jboolean* isCopy);
     void        (*ReleaseStringUTFChars)(JNIEnv* env, jstring string, const char* utf);
     jsize       (*GetArrayLength)(JNIEnv* env, jarray array);
     jobjectArray (*NewObjectArray)(JNIEnv* env, jsize length, jclass elementClass, jobject initialElement);
@@ -1100,6 +1101,7 @@ extern "C" {
  *
  * Note these are the only symbols exported for JNI by the VM.
  */
+
 jint JNI_GetDefaultJavaVMInitArgs(void*);
 jint JNI_CreateJavaVM(JavaVM**, JNIEnv**, void*);
 jint JNI_GetCreatedJavaVMs(JavaVM**, jsize, jsize*);
