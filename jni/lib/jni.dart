@@ -20,14 +20,21 @@
 /// ```
 ///
 /// __Dart standalone support:__
+///
+///
+/// On dart standalone target, we unfortunately have no mechanism to bundle the wrapper libraries
+/// with the executable. Thus it needs to be explicitly placed in a accessable directory and provided
+/// as an argument to Jni.spawn().
+///
 /// This module depends on a shared library written in C, when using dart standalone, it's
 /// your responsibility to:
 ///
-///    * Build the library `libdartjni.so`
+///    * Build the library `libdartjni.so` in src/ directory of this plugin
 ///    * Bundle it appropriately with dart application
 ///    * Pass the path to library as a parameter to `Jni.spawn()`
 ///
 /// __JNIEnv:__
+///
 /// The types `JNIEnv` and `JavaVM` in JNI are available as `JniEnv` and `JavaVM`
 /// respectively, with extension methods to conveniently invoke the function pointer
 /// members. Therefore the calling syntax will be similar to JNI in C++. The first `JniEnv *` parameter is
@@ -39,13 +46,13 @@
 /// final jni = Platform.isAndroid? Jni.getInstance() : Jni.spawn({options})
 /// ```
 ///
-/// On dart standalone target, we unfortunately have no mechanism to bundle the wrapper libraries
-/// with the executable. Thus it needs to be explicitly placed in a accessable directory and provided
-/// as an argument to Jni.spawn().
+/// __Debugging__:
 ///
+/// * Debugging JNI errors hard in general. On desktop platforms you can use JniEnv.ExceptionDescribe to print any existing error to stdout.
+
 library jni;
 
 export 'src/jni.dart' show Jni;
-export 'src/extensions.dart' show StringMethodsForJNI, CharPtrMethodsForJNI;
+export 'src/extensions.dart'
+    show StringMethodsForJni, CharPtrMethodsForJni, AdditionalJniEnvMethods;
 export 'src/jni_bindings_generated.dart'; // currently just export all
-

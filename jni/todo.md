@@ -2,14 +2,10 @@
 
 * Eliminate duplicate declaration of JniEnv
 
-* Functions to create jvalues from any allocator
-
-* Write JniClass, JniMethod, JniStaticMethod, JniObject, JniThrowable;
+* Write JniClass, JniMethod, JniStaticMethod, JniObject, JniGlobalObject, JniThrowable;
 	Or extensions on corresponding types.
 
 * Hide CallMethod[V] methods, only A methods can be called from dart.
-
-* JString cache if at all makes sense
 
 * Function callbacks from Dart_Handle if at all makes sense.
 	- java.lang.reflect.Proxy
