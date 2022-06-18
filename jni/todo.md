@@ -6,6 +6,8 @@
 
 * Bundling with dart standalone application
 
+* Clean up docs
+
 * Tests for JniGlobalRef - across isolate?
 
 * Check if we need two classes instead of single JniGlobalRef
@@ -15,6 +17,8 @@
 * callStringMethod, callStaticStringMethod
 
 * Documentation & check style
+
+* Clean up docs
 
 * UTF16 string type with length (?)
 

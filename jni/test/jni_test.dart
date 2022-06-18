@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:test/test.dart';
 import 'package:ffi/ffi.dart';
@@ -25,11 +26,11 @@ void main() {
   jni = Jni.getInstance();
 
   test('get JNI Version', () {
-	// get a dart binding of JNIEnv object
-	// It's a thin wrapper over C's JNIEnv*, and provides
-	// all methods of it (without need to pass the first self parameter),
-	// plus few extension methods to make working in dart easier.
-	final env = jni.getEnv();
+    // get a dart binding of JNIEnv object
+    // It's a thin wrapper over C's JNIEnv*, and provides
+    // all methods of it (without need to pass the first self parameter),
+    // plus few extension methods to make working in dart easier.
+    final env = jni.getEnv();
     expect(env.GetVersion(), isNot(equals(0)));
   });
 
@@ -53,9 +54,9 @@ void main() {
 
     for (var i in [1, 80, 13, 76, 1134453224145]) {
       // Use Jni.jvalues method to easily construct native argument arrays
-	  // if your argument is int, bool, or JObject (`Pointer<Void>`)
-	  // it can be directly placed in the list. To convert into different primitive
-	  // types, use JValue<Type> wrappers.
+      // if your argument is int, bool, or JObject (`Pointer<Void>`)
+      // it can be directly placed in the list. To convert into different primitive
+      // types, use JValue<Type> wrappers.
       final jres = env.CallStaticObjectMethodA(
           longClass, hexMethod, Jni.jvalues([JValueLong(i)], allocator: arena));
 
@@ -181,28 +182,42 @@ void main() {
   /// call<Type>MethodByName will be expensive if making same call many times
   /// Use getMethodID to get a method ID and use it in subsequent calls
   test("Example for using getMethodID", () {
-	final longClass = jni.findClass("java/lang/Long");
-	final bitCountMethod = longClass.getStaticMethodID("bitCount", "(J)I");
+    final longClass = jni.findClass("java/lang/Long");
+    final bitCountMethod = longClass.getStaticMethodID("bitCount", "(J)I");
 
-	// Use newInstance if you want only one instance.
-	// It finds the class, gets constructor ID and constructs an instance.
-	final random = jni.newInstance("java/util/Random", "()V", []);
+    // Use newInstance if you want only one instance.
+    // It finds the class, gets constructor ID and constructs an instance.
+    final random = jni.newInstance("java/util/Random", "()V", []);
 
-	// You don't need a JniClass reference to get instance method IDs
-	final nextIntMethod = random.getMethodID("nextInt", "(I)I");
+    // You don't need a JniClass reference to get instance method IDs
+    final nextIntMethod = random.getMethodID("nextInt", "(I)I");
 
-	for (int i = 0; i < 100; i++) {
-		int r = random.callIntMethod(nextIntMethod, [256 * 256]);
-		int bits = 0;
-		int jbc = longClass.callStaticIntMethod(bitCountMethod, [r]);
-		while (r != 0) {
-			bits += r % 2;
-			r = (r / 2).floor();
-		}
-		expect(jbc, equals(bits));
-	}
+    for (int i = 0; i < 100; i++) {
+      int r = random.callIntMethod(nextIntMethod, [256 * 256]);
+      int bits = 0;
+      int jbc = longClass.callStaticIntMethod(bitCountMethod, [r]);
+      while (r != 0) {
+        bits += r % 2;
+        r = (r / 2).floor();
+      }
+      expect(jbc, equals(bits));
+    }
 
-	random.delete();
-	longClass.delete();
+    random.delete();
+    longClass.delete();
+  });
+
+  test("JniGlobalRef", () {
+	var random = jni.newInstance("java/util/Random", "()V", []);
+	var rg = random.getGlobalRef();
+	Future.microtask(() {
+		var env = jni.getEnv();
+		var random = JniObject.fromGlobalRef(env, rg);
+		var randomInt = random.callIntMethodByName("nextInt", "(I)I", [256]);
+		expect(randomInt, lessThan(256));
+		random.delete();
+	})
+	.then((_) => rg.delete(jni.getEnv()));
+	// random.delete();
   });
 }

@@ -50,6 +50,14 @@ class Jni {
   /// If not running on Android and no Jni is spawned
   /// using Jni.spawn(), throws an exception.
   static Jni getInstance() {
+	// TODO: Known issue with isolates
+	// Apparently static variables are reconstructed
+	// in every isolate which breaks calling JNI from an isolate.
+	// I could fix this by doing a simple reload of library
+	// whenever _instance is null, but that will break when library
+	// is loaded on dart standalone.
+	//
+	// Still pondering what's the 'right' way to do it.
     if (Platform.isAndroid) {
       _instance ??= Jni._(JniBindings(_loadJniHelpersLibrary()));
       return _instance!;
@@ -291,9 +299,10 @@ class JniObject {
   ///
   /// [r] still needs to be explicitly deleted when
   /// it's no longer needed to construct any JniObjects.
-  JniObject.fromGlobalRef(this._env, JniGlobalRef r)
-      : _cls = _env.NewLocalRef(r._cls),
-        _obj = _env.NewLocalRef(r._obj);
+  JniObject.fromGlobalRef(Pointer<JniEnv> env, JniGlobalRef r)
+      : _env = env,
+		_cls = env.NewLocalRef(r._cls),
+        _obj = env.NewLocalRef(r._obj);
 
   /// Delete the local reference contained by this object.
   ///
@@ -355,8 +364,8 @@ class JniObject {
   /// This is useful for passing a JniObject between threads.
   JniGlobalRef getGlobalRef() {
     return JniGlobalRef._(
-      _env.NewGlobalRef(_cls),
       _env.NewGlobalRef(_obj),
+      _env.NewGlobalRef(_cls),
     );
   }
 }
@@ -460,6 +469,11 @@ class JniGlobalRef {
 
   JObject get jobject => _obj;
   JObject get jclass => _cls;
+
+  void delete(Pointer<JniEnv> env) {
+	env.DeleteGlobalRef(_obj);
+	env.DeleteGlobalRef(_cls);
+  }
 }
 
 // TODO: Any better way to allocate this?
