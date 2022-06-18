@@ -48,7 +48,7 @@ extension AdditionalJniEnvMethods on Pointer<JniEnv> {
   ///
   /// If [describe] is true, a description is printed to screen.
   /// To access actual exception object, use [ExceptionOccurred].
-  void checkException({describe = false}) {
+  void checkException({bool describe = false}) {
     var exc = ExceptionOccurred();
     if (exc != nullptr) {
       // TODO: Doing this every time is expensive

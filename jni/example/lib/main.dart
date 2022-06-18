@@ -40,6 +40,21 @@ int random(int n) {
   return res;
 }
 
+double randomDouble() {
+  final math = jni.findClass("java/lang/Math");
+  final random = math.callStaticDoubleMethodByName("random", "()D", []);
+  math.delete();
+  return random;
+}
+
+int uptime() {
+  final systemClock = jni.findClass("android/os/SystemClock");
+  final uptime =
+      systemClock.callStaticLongMethodByName("uptimeMillis", "()J", []);
+  systemClock.delete();
+  return uptime;
+}
+
 void main() {
   if (!Platform.isAndroid) {
     Jni.spawn();
@@ -49,6 +64,10 @@ void main() {
     Example("String.valueOf(1332)", () => localToJavaString(1332)),
     Example("Generate random number", () => random(180).toString(),
         runInitially: false),
+    Example("Math.random()", () => randomDouble().toString(),
+        runInitially: false),
+    Example("Minutes of usage since reboot",
+        () => (uptime() / (60*1000)).floor().toString())
   ];
   runApp(MyApp(examples));
 }

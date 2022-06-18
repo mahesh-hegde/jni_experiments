@@ -80,9 +80,6 @@ jclass LoadClass(const char *name) {
 #else
 	cls = (*jniEnv)->FindClass(jniEnv, name);
 #endif
-	if (cls == NULL) {
-		(*jniEnv)->ExceptionDescribe(jniEnv);
-	}
 	return cls;
 };
 

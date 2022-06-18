@@ -1,0 +1,20 @@
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  {TARGET_TYPE} call{STATIC}{TYPE}Method(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.Call{STATIC}{TYPE}MethodA({THIS}, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return {RESULT};
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [get{STATIC}MethodID]
+  /// and [call{STATIC}{TYPE}Method].
+  {TARGET_TYPE} call{STATIC}{TYPE}MethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = get{STATIC}MethodID(name, signature);
+    final result = call{STATIC}{TYPE}Method(mID, args);
+    return result;
+  }
+
+

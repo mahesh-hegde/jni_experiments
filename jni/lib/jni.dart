@@ -52,7 +52,7 @@
 
 library jni;
 
-export 'src/jni.dart' show Jni;
+export 'src/jni.dart';
 export 'src/extensions.dart'
     show StringMethodsForJni, CharPtrMethodsForJni, AdditionalJniEnvMethods;
 export 'src/jni_bindings_generated.dart'; // currently just export all

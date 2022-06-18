@@ -102,7 +102,6 @@ class Jni {
     List<String> classPath = const [],
     bool ignoreUnrecognized = false,
     int version = JNI_VERSION_1_6,
-    // TODO: JNI_OnLoad, JNI_OnUnload, exit hooks
   }) {
     final args = calloc<JavaVMInitArgs>();
     if (options.isNotEmpty || classPath.isNotEmpty) {
@@ -170,8 +169,27 @@ class Jni {
   JniClass findClass(String qualifiedName) {
     var nameChars = qualifiedName.toNativeChars();
     final cls = _bindings.LoadClass(nameChars);
+    final env = getEnv();
+    env.checkException();
     calloc.free(nameChars);
-    return JniClass._(getEnv(), cls);
+    return JniClass._(env, cls);
+  }
+
+  /// Constructs an instance of class with given args.
+  ///
+  /// Use it when you only need one instance, but not the actual class
+  /// nor any constructor / static methods.
+  JniObject newInstance(
+      String qualifiedName, String ctorSignature, List<dynamic> args) {
+    final nameChars = qualifiedName.toNativeChars();
+    final sigChars = ctorSignature.toNativeChars();
+    final env = getEnv();
+    final cls = _bindings.LoadClass(nameChars);
+    final ctor = env.GetMethodID(cls, _initMethodName, sigChars);
+    final obj = env.NewObjectA(cls, ctor, Jni.jvalues(args));
+    calloc.free(nameChars);
+    calloc.free(sigChars);
+    return JniObject._(env, obj, cls);
   }
 
   /// Converts passed arguments to JValue array
@@ -186,6 +204,7 @@ class Jni {
     for (int i = 0; i < args.length; i++) {
       final arg = args[i];
       final pos = result.elementAt(i);
+      // switch on runtimeType is not guaranteed to work?
       switch (arg.runtimeType) {
         case int:
           pos.ref.i = arg;
@@ -194,22 +213,23 @@ class Jni {
           pos.ref.z = arg ? 1 : 0;
           break;
         case Pointer<Void>:
+        case Pointer<Never>:
           pos.ref.l = arg;
           break;
         case double:
           pos.ref.d = arg;
           break;
         case JValueLong:
-          pos.ref.j = arg;
+          pos.ref.j = (arg as JValueLong).value;
           break;
         case JValueShort:
-          pos.ref.s = arg;
+          pos.ref.s = (arg as JValueShort).value;
           break;
         case JValueChar:
-          pos.ref.c = arg;
+          pos.ref.c = (arg as JValueChar).value;
           break;
         case JValueByte:
-          pos.ref.b = arg;
+          pos.ref.b = (arg as JValueByte).value;
           break;
         default:
           throw "cannot convert ${arg.runtimeType} to jvalue";
@@ -259,7 +279,7 @@ class JValueChar {
 /// It should be distroyed with [dispose] method after done.
 ///
 /// It's valid only in the thread it was created.
-/// When passing to code that might run in a different thread,
+/// When passing to code that might run in a different thread (eg: a callback),
 /// consider obtaining a global reference and reconstructing the object.
 class JniObject {
   JClass _cls;
@@ -275,190 +295,9 @@ class JniObject {
       : _cls = _env.NewLocalRef(r._cls),
         _obj = _env.NewLocalRef(r._obj);
 
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  JObject callObjectMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callObjectMethod].
-  JObject callObjectMethodByName(
-      String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callObjectMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  bool callBooleanMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallBooleanMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result != 0;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callBooleanMethod].
-  bool callBooleanMethodByName(
-      String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callBooleanMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  int callByteMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallByteMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callByteMethod].
-  int callByteMethodByName(String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callByteMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  int callCharMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallCharMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callCharMethod].
-  int callCharMethodByName(String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callCharMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  int callShortMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallShortMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callShortMethod].
-  int callShortMethodByName(String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callShortMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  int callIntMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallIntMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callIntMethod].
-  int callIntMethodByName(String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callIntMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  int callLongMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallLongMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callLongMethod].
-  int callLongMethodByName(String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callLongMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  double callFloatMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallFloatMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callFloatMethod].
-  double callFloatMethodByName(
-      String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callFloatMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  double callDoubleMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallDoubleMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callDoubleMethod].
-  double callDoubleMethodByName(
-      String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callDoubleMethod(mID, args);
-    return result;
-  }
-
-  /// Calls method pointed to by [methodID] with [args] as arguments
-  void callVoidMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallVoidMethodA(_obj, methodID, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return result;
-  }
-
-  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
-  /// If calling the same method multiple times, consider using [getMethodID]
-  /// and [callVoidMethod].
-  void callVoidMethodByName(String name, String signature, List<dynamic> args) {
-    final mID = getMethodID(name, signature);
-    final result = callVoidMethod(mID, args);
-    return result;
-  }
-
+  /// Delete the local reference contained by this object.
+  ///
+  /// Do not use a JniObject after calling [delete].
   void delete() {
     _env.DeleteLocalRef(_obj);
     if (_cls != nullptr) {
@@ -466,8 +305,24 @@ class JniObject {
     }
   }
 
-  JObject get object => _obj;
+  JObject get jobject => _obj;
+  JObject get jclass => _cls;
 
+  /// Get a JniClass of this object's class.
+  JniClass getClass() {
+    if (_cls == nullptr) {
+      return JniClass._(_env, _env.GetObjectClass(_obj));
+    }
+    return JniClass._(_env, _env.NewLocalRef(_cls));
+  }
+
+  /// if the underlying JObject is string
+  /// converts it to string representation.
+  String asDartString() {
+    return _env.asDartString(_obj);
+  }
+
+  /// Returns method id for [name] on this object.
   JMethodID getMethodID(String name, String signature) {
     if (_cls == nullptr) {
       _cls = _env.GetObjectClass(_obj);
@@ -481,6 +336,7 @@ class JniObject {
     return result;
   }
 
+  /// Returns field id for [name] on this object.
   JFieldID getFieldID(String name, String signature) {
     if (_cls == nullptr) {
       _cls = _env.GetObjectClass(_obj);
@@ -494,6 +350,9 @@ class JniObject {
     return result;
   }
 
+  /// Get a global reference.
+  ///
+  /// This is useful for passing a JniObject between threads.
   JniGlobalRef getGlobalRef() {
     return JniGlobalRef._(
       _env.NewGlobalRef(_cls),
@@ -512,7 +371,11 @@ class JniClass {
 
   JniClass.fromGlobalRef(Pointer<JniEnv> env, JniGlobalRef r)
       : _env = env,
-        _cls = env.NewLocalRef(r._cls);
+        _cls = env.NewLocalRef(r._cls) {
+    if (r._obj != nullptr) {
+      throw 'Fatal: trying to construct JniClass from a JniObject global ref';
+    }
+  }
 
   JMethodID getConstructorID(String signature) {
     final methodSig = signature.toNativeChars();
@@ -522,6 +385,7 @@ class JniClass {
     return methodID;
   }
 
+  /// Construct new object using [ctor].
   JniObject newObject(JMethodID ctor, List<dynamic> args) {
     final jvArgs = Jni.jvalues(args);
     final newObj = _env.NewObjectA(_cls, ctor, jvArgs);
@@ -530,7 +394,6 @@ class JniClass {
     return JniObject._(_env, newObj, nullptr);
   }
 
-  // call static methods
   JMethodID _getMethodID(String name, String signature, bool isStatic) {
     final methodName = name.toNativeChars();
     final methodSig = signature.toNativeChars();
@@ -574,6 +437,12 @@ class JniClass {
   JFieldID getStaticFieldID(String name, String signature) {
     return _getFieldID(name, signature, true);
   }
+
+  JClass get jclass => _cls;
+
+  void delete() {
+    _env.DeleteLocalRef(_cls);
+  }
 }
 
 /// Represents a JNI global reference
@@ -589,7 +458,642 @@ class JniGlobalRef {
   final JClass _cls;
   JniGlobalRef._(this._obj, this._cls);
 
-  JObject get object => _obj;
+  JObject get jobject => _obj;
+  JObject get jclass => _cls;
 }
 
+// TODO: Any better way to allocate this?
 final _initMethodName = "<init>".toNativeChars();
+
+// AUTO GENERATED DO NOT EDIT
+// DELETE NEXT PART AND RE RUN GENERATOR AFTER CHANGING TEMPLATE
+
+extension JniObjectCallMethods on JniObject {
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  JniObject callObjectMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return JniObject._(_env, result, nullptr);
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callObjectMethod].
+  JniObject callObjectMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callObjectMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  JniObject getObjectField(JFieldID fieldID) {
+    final result = _env.GetObjectField(_obj, fieldID);
+    _env.checkException();
+    return JniObject._(_env, result, nullptr);
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  JniObject getObjectFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getObjectField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  bool callBooleanMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallBooleanMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result != 0;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callBooleanMethod].
+  bool callBooleanMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callBooleanMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  bool getBooleanField(JFieldID fieldID) {
+    final result = _env.GetBooleanField(_obj, fieldID);
+    _env.checkException();
+    return result != 0;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  bool getBooleanFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getBooleanField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callByteMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallByteMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callByteMethod].
+  int callByteMethodByName(String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callByteMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getByteField(JFieldID fieldID) {
+    final result = _env.GetByteField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getByteFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getByteField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callCharMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallCharMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callCharMethod].
+  int callCharMethodByName(String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callCharMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getCharField(JFieldID fieldID) {
+    final result = _env.GetCharField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getCharFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getCharField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callShortMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallShortMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callShortMethod].
+  int callShortMethodByName(String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callShortMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getShortField(JFieldID fieldID) {
+    final result = _env.GetShortField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getShortFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getShortField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callIntMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallIntMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callIntMethod].
+  int callIntMethodByName(String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callIntMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getIntField(JFieldID fieldID) {
+    final result = _env.GetIntField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getIntFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getIntField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callLongMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallLongMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callLongMethod].
+  int callLongMethodByName(String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callLongMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getLongField(JFieldID fieldID) {
+    final result = _env.GetLongField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getLongFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getLongField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  double callFloatMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallFloatMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callFloatMethod].
+  double callFloatMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callFloatMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  double getFloatField(JFieldID fieldID) {
+    final result = _env.GetFloatField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  double getFloatFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getFloatField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  double callDoubleMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallDoubleMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callDoubleMethod].
+  double callDoubleMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callDoubleMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  double getDoubleField(JFieldID fieldID) {
+    final result = _env.GetDoubleField(_obj, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  double getDoubleFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getDoubleField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  void callVoidMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallVoidMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callVoidMethod].
+  void callVoidMethodByName(String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callVoidMethod(mID, args);
+    return result;
+  }
+}
+
+extension JniClassCallMethods on JniClass {
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  JniObject callStaticObjectMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return JniObject._(_env, result, nullptr);
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticObjectMethod].
+  JniObject callStaticObjectMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticObjectMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  JniObject getStaticObjectField(JFieldID fieldID) {
+    final result = _env.GetStaticObjectField(_cls, fieldID);
+    _env.checkException();
+    return JniObject._(_env, result, nullptr);
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  JniObject getObjectFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticObjectField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  bool callStaticBooleanMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticBooleanMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result != 0;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticBooleanMethod].
+  bool callStaticBooleanMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticBooleanMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  bool getStaticBooleanField(JFieldID fieldID) {
+    final result = _env.GetStaticBooleanField(_cls, fieldID);
+    _env.checkException();
+    return result != 0;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  bool getBooleanFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticBooleanField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callStaticByteMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticByteMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticByteMethod].
+  int callStaticByteMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticByteMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getStaticByteField(JFieldID fieldID) {
+    final result = _env.GetStaticByteField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getByteFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticByteField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callStaticCharMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticCharMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticCharMethod].
+  int callStaticCharMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticCharMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getStaticCharField(JFieldID fieldID) {
+    final result = _env.GetStaticCharField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getCharFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticCharField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callStaticShortMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticShortMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticShortMethod].
+  int callStaticShortMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticShortMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getStaticShortField(JFieldID fieldID) {
+    final result = _env.GetStaticShortField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getShortFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticShortField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callStaticIntMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticIntMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticIntMethod].
+  int callStaticIntMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticIntMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getStaticIntField(JFieldID fieldID) {
+    final result = _env.GetStaticIntField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getIntFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticIntField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  int callStaticLongMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticLongMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticLongMethod].
+  int callStaticLongMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticLongMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  int getStaticLongField(JFieldID fieldID) {
+    final result = _env.GetStaticLongField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  int getLongFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticLongField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  double callStaticFloatMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticFloatMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticFloatMethod].
+  double callStaticFloatMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticFloatMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  double getStaticFloatField(JFieldID fieldID) {
+    final result = _env.GetStaticFloatField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  double getFloatFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticFloatField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  double callStaticDoubleMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticDoubleMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticDoubleMethod].
+  double callStaticDoubleMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticDoubleMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  double getStaticDoubleField(JFieldID fieldID) {
+    final result = _env.GetStaticDoubleField(_cls, fieldID);
+    _env.checkException();
+    return result;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  double getDoubleFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticDoubleField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  void callStaticVoidMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticVoidMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    return result;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticVoidMethod].
+  void callStaticVoidMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticVoidMethod(mID, args);
+    return result;
+  }
+}

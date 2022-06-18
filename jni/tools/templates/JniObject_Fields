@@ -1,0 +1,14 @@
+  /// Retrieves the value of the field denoted by [fieldID]
+  {TARGET_TYPE} get{STATIC}{TYPE}Field(JFieldID fieldID) {
+	final result = _env.Get{STATIC}{TYPE}Field({THIS}, fieldID);
+	_env.checkException();
+	return {RESULT};
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  {TARGET_TYPE} get{TYPE}FieldByName(String name, String signature) {
+	final fID = get{STATIC}FieldID(name, signature);
+	final result = get{STATIC}{TYPE}Field(fID);
+	return result;
+  }
+
