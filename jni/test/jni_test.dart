@@ -19,8 +19,9 @@ void main() {
   //
   // On dart standalone, however, there's no way to bundle the wrappers.
   // You have to manually pass the path to the `dartjni` dynamic library.
+
   if (!Platform.isAndroid) {
-    Jni.spawn(helperPath: "src/");
+    Jni.spawn(helperDir: "src/");
   }
 
   jni = Jni.getInstance();
@@ -208,16 +209,35 @@ void main() {
   });
 
   test("JniGlobalRef", () {
-	var random = jni.newInstance("java/util/Random", "()V", []);
-	var rg = random.getGlobalRef();
-	Future.microtask(() {
-		var env = jni.getEnv();
-		var random = JniObject.fromGlobalRef(env, rg);
-		var randomInt = random.callIntMethodByName("nextInt", "(I)I", [256]);
-		expect(randomInt, lessThan(256));
-		random.delete();
-	})
-	.then((_) => rg.delete(jni.getEnv()));
-	// random.delete();
+    var random = jni.newInstance("java/util/Random", "()V", []);
+    var rg = random.getGlobalRef();
+    Future.microtask(() {
+      var env = jni.getEnv();
+      var random = JniObject.fromGlobalRef(env, rg);
+      var randomInt = random.callIntMethodByName("nextInt", "(I)I", [256]);
+      expect(randomInt, lessThan(256));
+      random.delete();
+    }).then((_) => rg.delete(jni.getEnv()));
+    random.delete();
   });
+
+  test("Isolate", () {
+    Isolate.spawn(doSomeWorkInIsolate, null);
+  });
+}
+
+void doSomeWorkInIsolate(Void? _) {
+  // On standalone target, make sure to call load
+  // when doing getInstance first time in a new isolate.
+  //
+  // otherwise getInstance will throw a "library not found" exception.
+  Jni.load(helperDir: "src/");
+  var jni = Jni.getInstance();
+  var random = jni.newInstance("java/util/Random", "()V", []);
+  var r = random.callIntMethodByName("nextInt", "(I)I", [256]);
+  // expect(r, lessThan(256));
+  // Expect throws an OutsideTestException
+  // but you can uncomment below print and see it works
+  // print("\n$r");
+  random.delete();
 }

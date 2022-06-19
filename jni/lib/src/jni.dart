@@ -49,30 +49,49 @@ class Jni {
   ///
   /// If not running on Android and no Jni is spawned
   /// using Jni.spawn(), throws an exception.
+  ///
+  /// On Dart standalone, when calling for the first time from
+  /// a new isolate, make sure to pass the library path.
   static Jni getInstance() {
-	// TODO: Known issue with isolates
-	// Apparently static variables are reconstructed
-	// in every isolate which breaks calling JNI from an isolate.
-	// I could fix this by doing a simple reload of library
-	// whenever _instance is null, but that will break when library
-	// is loaded on dart standalone.
-	//
-	// Still pondering what's the 'right' way to do it.
-    if (Platform.isAndroid) {
-      _instance ??= Jni._(JniBindings(_loadJniHelpersLibrary()));
-      return _instance!;
-    }
-    final inst = _instance;
-    if (inst == null) {
-      throw Exception("No JNI Instance associated with the process");
-    }
-    return inst;
+	// TODO: Throw appropriate error on standalone target.
+	// if helpers aren't loaded using spawn() or load().
+
+	// TODO: There may be still some edge cases not handled here.
+	if (_instance == null) {
+		final inst = Jni._(JniBindings(_loadJniHelpersLibrary()));
+		if (inst.getJavaVM() == nullptr) {
+			throw Exception("Fatal: No JVM associated with this process!"
+					" Did you call Jni.spawn?");
+		}
+		// If no error, save this singleton.
+		_instance = inst;
+	}
+    return _instance!;
+  }
+
+  /// Initialize instance from custom helper library path.
+  ///
+  /// On dart standalone, call this in new isolate before
+  /// doing getInstance().
+  ///
+  /// (The reason is that dylibs need to be loaded in every isolate.
+  /// On flutter it's done by library. On dart standalone we don't
+  /// know the library path.)
+  static void load({required String helperDir}) {
+	  if (_instance != null) {
+		throw Exception('Fatal: a JNI instance already exists in this isolate');
+	  }
+      final inst = Jni._(JniBindings(_loadJniHelpersLibrary(dir: helperDir)));
+      if (inst.getJavaVM() == nullptr) {
+        throw Exception("Fatal: No JVM associated with this process");
+      }
+	  _instance = inst;
   }
 
   /// Spawn an instance of JVM using JNI.
   /// This instance will be returned by future calls to [getInstance]
   ///
-  /// [helperPath] is path of the directory where the wrapper library is found.
+  /// [helperDir] is path of the directory where the wrapper library is found.
   /// This parameter needs to be passed manually on __Dart standalone target__,
   /// since we have no reliable way to bundle it with the package.
   ///
@@ -80,7 +99,7 @@ class Jni {
   /// Strings in [classPath], if any, are used to construct an additional
   /// JVM option of the form "-Djava.class.path={paths}".
   static Jni spawn({
-    String? helperPath,
+    String? helperDir,
     int logLevel = JniLogLevel.JNI_INFO,
     List<String> jvmOptions = const [],
     List<String> classPath = const [],
@@ -90,7 +109,7 @@ class Jni {
     if (_instance != null) {
       throw Exception("Currently only 1 VM is supported.");
     }
-    final dylib = _loadJniHelpersLibrary(dir: helperPath);
+    final dylib = _loadJniHelpersLibrary(dir: helperDir);
     final inst = Jni._(JniBindings(dylib));
     _instance = inst;
     inst._bindings.SetJNILogging(logLevel);
@@ -299,10 +318,10 @@ class JniObject {
   ///
   /// [r] still needs to be explicitly deleted when
   /// it's no longer needed to construct any JniObjects.
-  JniObject.fromGlobalRef(Pointer<JniEnv> env, JniGlobalRef r)
+  JniObject.fromGlobalRef(Pointer<JniEnv> env, JniGlobalObjectRef r)
       : _env = env,
-		_cls = env.NewLocalRef(r._cls),
-        _obj = env.NewLocalRef(r._obj);
+        _obj = env.NewLocalRef(r._obj),
+        _cls = env.NewLocalRef(r._cls);
 
   /// Delete the local reference contained by this object.
   ///
@@ -362,8 +381,8 @@ class JniObject {
   /// Get a global reference.
   ///
   /// This is useful for passing a JniObject between threads.
-  JniGlobalRef getGlobalRef() {
-    return JniGlobalRef._(
+  JniGlobalObjectRef getGlobalRef() {
+    return JniGlobalObjectRef._(
       _env.NewGlobalRef(_obj),
       _env.NewGlobalRef(_cls),
     );
@@ -378,13 +397,9 @@ class JniClass {
   final Pointer<JniEnv> _env;
   JniClass._(this._env, this._cls);
 
-  JniClass.fromGlobalRef(Pointer<JniEnv> env, JniGlobalRef r)
+  JniClass.fromGlobalRef(Pointer<JniEnv> env, JniGlobalClassRef r)
       : _env = env,
-        _cls = env.NewLocalRef(r._cls) {
-    if (r._obj != nullptr) {
-      throw 'Fatal: trying to construct JniClass from a JniObject global ref';
-    }
-  }
+        _cls = env.NewLocalRef(r._cls);
 
   JMethodID getConstructorID(String signature) {
     final methodSig = signature.toNativeChars();
@@ -449,6 +464,8 @@ class JniClass {
 
   JClass get jclass => _cls;
 
+  JniGlobalClassRef getGlobalRef() =>
+      JniGlobalClassRef._(_env.NewGlobalRef(_cls));
   void delete() {
     _env.DeleteLocalRef(_cls);
   }
@@ -462,17 +479,27 @@ class JniClass {
 ///
 /// It should be explicitly deleted after done, using
 /// [delete(env)] method, passing some env, eg: obtained using [Jni.getEnv].
-class JniGlobalRef {
+class JniGlobalObjectRef {
   final JObject _obj;
   final JClass _cls;
-  JniGlobalRef._(this._obj, this._cls);
+  JniGlobalObjectRef._(this._obj, this._cls);
 
   JObject get jobject => _obj;
   JObject get jclass => _cls;
 
   void delete(Pointer<JniEnv> env) {
-	env.DeleteGlobalRef(_obj);
-	env.DeleteGlobalRef(_cls);
+    env.DeleteGlobalRef(_obj);
+    env.DeleteGlobalRef(_cls);
+  }
+}
+
+class JniGlobalClassRef {
+  JniGlobalClassRef._(this._cls);
+  final JClass _cls;
+  JClass get jclass => _cls;
+
+  void delete(Pointer<JniEnv> env) {
+    env.DeleteGlobalRef(_cls);
   }
 }
 

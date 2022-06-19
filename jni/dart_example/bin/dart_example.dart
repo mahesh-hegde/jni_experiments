@@ -7,7 +7,6 @@ void main(List<String> arguments) {
   final libPath = join(
       dirname(Platform.script.toFilePath(windows: Platform.isWindows)),
       "libdartjni.so");
-  Jni jni = Jni.spawn(helperPath: libPath);
+  Jni jni = Jni.spawn(helperDir: libPath);
   jni.setJniLogging(JniLogLevel.JNI_DEBUG);
-  print('Got String: ${jni.toJavaString(134)}!');
 }

@@ -66,7 +66,7 @@ void main() {
         runInitially: false),
     Example("Math.random()", () => randomDouble().toString(),
         runInitially: false),
-    Example("Minutes of usage since reboot",
+    if (Platform.isAndroid) Example("Minutes of usage since reboot",
         () => (uptime() / (60*1000)).floor().toString())
   ];
   runApp(MyApp(examples));
