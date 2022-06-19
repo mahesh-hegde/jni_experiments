@@ -1,8 +1,9 @@
 # TODO
 
 * test & benchmark application
-	* jarFileTests // use some popular jar
-	* androidPlatformTests
+	* jarFileTests // use some popular jar ?
+	* androidPlatformTests ?
+	* One small useful android application (Packages list?)
 
 * Clean up docs
 
@@ -12,11 +13,14 @@
 
 * callStringMethod, callStaticStringMethod
 
+* callStaticMethod on Jni type, no need to lookup class
+
 * Documentation & check style
 
 * Clean up docs
 
 * UTF16 string type with length (?)
+	- Are there differences between java and dart utf16?
 
 * NativeFinalizer instead of delete ?
 
@@ -30,5 +34,4 @@
 * Inspect NDK / gradle warning on Android release build
 
 class JniUtil
-
 

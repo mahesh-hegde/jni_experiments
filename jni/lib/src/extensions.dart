@@ -24,6 +24,9 @@ extension AdditionalJniEnvMethods on Pointer<JniEnv> {
   /// to dart string.
   String asDartString(JString jstring) {
     final chars = GetStringUTFChars(jstring, nullptr);
+	if (chars == nullptr) {
+		checkException();
+	}
     final result = chars.cast<Utf8>().toDartString();
     ReleaseStringUTFChars(jstring, chars);
     return result;
@@ -47,7 +50,7 @@ extension AdditionalJniEnvMethods on Pointer<JniEnv> {
   /// If any exception is pending in JNI, throw it in Dart.
   ///
   /// If [describe] is true, a description is printed to screen.
-  /// To access actual exception object, use [ExceptionOccurred].
+  /// To access actual exception object, use `ExceptionOccurred`.
   void checkException({bool describe = false}) {
     var exc = ExceptionOccurred();
     if (exc != nullptr) {

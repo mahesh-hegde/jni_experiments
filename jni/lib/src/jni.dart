@@ -303,7 +303,7 @@ class JValueChar {
 /// JniObject is a convenience wrapper around a JNI local object reference.
 ///
 /// It holds the object, its associated associated jniEnv etc..
-/// It should be distroyed with [dispose] method after done.
+/// It should be distroyed with [delete] method after done.
 ///
 /// It's valid only in the thread it was created.
 /// When passing to code that might run in a different thread (eg: a callback),
@@ -505,6 +505,52 @@ class JniGlobalClassRef {
 
 // TODO: Any better way to allocate this?
 final _initMethodName = "<init>".toNativeChars();
+
+extension JniObjectCallStringMethod on JniObject {
+	/// Call a method that returns a string result
+	///
+	/// Similar to [JniObjectCallMethods.callObjectMethod] but auto-converts result to string
+	/// and deletes the reference to JObject.
+	String callStringMethod(JMethodID methodID, List<dynamic> args) {
+		final jvArgs = Jni.jvalues(args);
+		final ret = _env.CallObjectMethodA(_obj, methodID, jvArgs);
+		_env.checkException();
+		calloc.free(jvArgs);
+		final result = _env.asDartString(ret);
+		_env.DeleteLocalRef(ret);
+		return result;
+	}
+
+	/// Lookup method and call it using [callStringMethod].
+	String callStringMethodByName(String name, String signature, List<dynamic> args) {
+		final mID = getMethodID(name, signature);
+		final result = callStringMethod(mID, args);
+		return result;
+	}
+}
+
+extension JniClassCallStringMethod on JniClass {
+	/// Call a method that returns a string result
+	///
+	/// Similar to [JniClassCallMethods.callStaticObjectMethod] but auto-converts result to string
+	/// and deletes the reference to JObject.
+	String callStaticStringMethod(JMethodID methodID, List<dynamic> args) {
+		final jvArgs = Jni.jvalues(args);
+		final ret = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
+		// TODO: Duplicated code
+		calloc.free(jvArgs);
+		final result = _env.asDartString(ret);
+		_env.DeleteLocalRef(ret);
+		return result;
+	}
+
+	/// Lookup method and call it using [callStaticStringMethod].
+	String callStaticStringMethodByName(String name, String signature, List<dynamic> args) {
+		final mID = getStaticMethodID(name, signature);
+		final result = callStaticStringMethod(mID, args);
+		return result;
+	}
+}
 
 // AUTO GENERATED DO NOT EDIT
 // DELETE NEXT PART AND RE RUN GENERATOR AFTER CHANGING TEMPLATE

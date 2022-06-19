@@ -40,12 +40,6 @@
 /// members. Therefore the calling syntax will be similar to JNI in C++. The first `JniEnv *` parameter is
 /// implicit, a la C++.
 ///
-/// ```dart
-/// import 'package:jni/jni.dart'
-///
-/// final jni = Platform.isAndroid? Jni.getInstance() : Jni.spawn({options})
-/// ```
-///
 /// __Debugging__:
 ///
 /// * Debugging JNI errors hard in general. On desktop platforms you can use JniEnv.ExceptionDescribe to print any existing error to stdout.

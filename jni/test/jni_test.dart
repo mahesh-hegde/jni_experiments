@@ -208,6 +208,16 @@ void main() {
     longClass.delete();
   });
 
+  // Use callStringMethod if all you care about is a string result
+  test("callStaticStringMethod", () {
+    final longClass = jni.findClass("java/lang/Long");
+    const n = 1223334444;
+    final strFromJava = longClass.callStaticStringMethodByName(
+        "toOctalString", "(J)Ljava/lang/String;", [n]);
+	expect(strFromJava, equals(n.toRadixString(8)));
+	longClass.delete();
+  });
+
   test("JniGlobalRef", () {
     var random = jni.newInstance("java/util/Random", "()V", []);
     var rg = random.getGlobalRef();
