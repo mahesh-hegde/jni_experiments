@@ -53,19 +53,19 @@ class Jni {
   /// On Dart standalone, when calling for the first time from
   /// a new isolate, make sure to pass the library path.
   static Jni getInstance() {
-	// TODO: Throw appropriate error on standalone target.
-	// if helpers aren't loaded using spawn() or load().
+    // TODO: Throw appropriate error on standalone target.
+    // if helpers aren't loaded using spawn() or load().
 
-	// TODO: There may be still some edge cases not handled here.
-	if (_instance == null) {
-		final inst = Jni._(JniBindings(_loadJniHelpersLibrary()));
-		if (inst.getJavaVM() == nullptr) {
-			throw Exception("Fatal: No JVM associated with this process!"
-					" Did you call Jni.spawn?");
-		}
-		// If no error, save this singleton.
-		_instance = inst;
-	}
+    // TODO: There may be still some edge cases not handled here.
+    if (_instance == null) {
+      final inst = Jni._(JniBindings(_loadJniHelpersLibrary()));
+      if (inst.getJavaVM() == nullptr) {
+        throw Exception("Fatal: No JVM associated with this process!"
+            " Did you call Jni.spawn?");
+      }
+      // If no error, save this singleton.
+      _instance = inst;
+    }
     return _instance!;
   }
 
@@ -78,14 +78,14 @@ class Jni {
   /// On flutter it's done by library. On dart standalone we don't
   /// know the library path.)
   static void load({required String helperDir}) {
-	  if (_instance != null) {
-		throw Exception('Fatal: a JNI instance already exists in this isolate');
-	  }
-      final inst = Jni._(JniBindings(_loadJniHelpersLibrary(dir: helperDir)));
-      if (inst.getJavaVM() == nullptr) {
-        throw Exception("Fatal: No JVM associated with this process");
-      }
-	  _instance = inst;
+    if (_instance != null) {
+      throw Exception('Fatal: a JNI instance already exists in this isolate');
+    }
+    final inst = Jni._(JniBindings(_loadJniHelpersLibrary(dir: helperDir)));
+    if (inst.getJavaVM() == nullptr) {
+      throw Exception("Fatal: No JVM associated with this process");
+    }
+    _instance = inst;
   }
 
   /// Spawn an instance of JVM using JNI.
@@ -506,56 +506,47 @@ class JniGlobalClassRef {
 // TODO: Any better way to allocate this?
 final _initMethodName = "<init>".toNativeChars();
 
-extension JniObjectCallStringMethod on JniObject {
-	/// Call a method that returns a string result
-	///
-	/// Similar to [JniObjectCallMethods.callObjectMethod] but auto-converts result to string
-	/// and deletes the reference to JObject.
-	String callStringMethod(JMethodID methodID, List<dynamic> args) {
-		final jvArgs = Jni.jvalues(args);
-		final ret = _env.CallObjectMethodA(_obj, methodID, jvArgs);
-		_env.checkException();
-		calloc.free(jvArgs);
-		final result = _env.asDartString(ret);
-		_env.DeleteLocalRef(ret);
-		return result;
-	}
-
-	/// Lookup method and call it using [callStringMethod].
-	String callStringMethodByName(String name, String signature, List<dynamic> args) {
-		final mID = getMethodID(name, signature);
-		final result = callStringMethod(mID, args);
-		return result;
-	}
-}
-
-extension JniClassCallStringMethod on JniClass {
-	/// Call a method that returns a string result
-	///
-	/// Similar to [JniClassCallMethods.callStaticObjectMethod] but auto-converts result to string
-	/// and deletes the reference to JObject.
-	String callStaticStringMethod(JMethodID methodID, List<dynamic> args) {
-		final jvArgs = Jni.jvalues(args);
-		final ret = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
-		// TODO: Duplicated code
-		calloc.free(jvArgs);
-		final result = _env.asDartString(ret);
-		_env.DeleteLocalRef(ret);
-		return result;
-	}
-
-	/// Lookup method and call it using [callStaticStringMethod].
-	String callStaticStringMethodByName(String name, String signature, List<dynamic> args) {
-		final mID = getStaticMethodID(name, signature);
-		final result = callStaticStringMethod(mID, args);
-		return result;
-	}
-}
-
 // AUTO GENERATED DO NOT EDIT
 // DELETE NEXT PART AND RE RUN GENERATOR AFTER CHANGING TEMPLATE
 
 extension JniObjectCallMethods on JniObject {
+  /// Calls method pointed to by [methodID] with [args] as arguments
+  String callStringMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    final str = _env.asDartString(result);
+    _env.DeleteLocalRef(result);
+    return str;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getMethodID]
+  /// and [callStringMethod].
+  String callStringMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getMethodID(name, signature);
+    final result = callStringMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  String getStringField(JFieldID fieldID) {
+    final result = _env.GetObjectField(_obj, fieldID);
+    _env.checkException();
+    final str = _env.asDartString(result);
+    _env.DeleteLocalRef(result);
+    return str;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  String getStringFieldByName(String name, String signature) {
+    final fID = getFieldID(name, signature);
+    final result = getStringField(fID);
+    return result;
+  }
+
   /// Calls method pointed to by [methodID] with [args] as arguments
   JniObject callObjectMethod(JMethodID methodID, List<dynamic> args) {
     final jvArgs = Jni.jvalues(args);
@@ -869,6 +860,43 @@ extension JniObjectCallMethods on JniObject {
 
 extension JniClassCallMethods on JniClass {
   /// Calls method pointed to by [methodID] with [args] as arguments
+  String callStaticStringMethod(JMethodID methodID, List<dynamic> args) {
+    final jvArgs = Jni.jvalues(args);
+    final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
+    _env.checkException();
+    calloc.free(jvArgs);
+    final str = _env.asDartString(result);
+    _env.DeleteLocalRef(result);
+    return str;
+  }
+
+  /// Looks up method with [name] and [signature], calls it with [args] as arguments.
+  /// If calling the same method multiple times, consider using [getStaticMethodID]
+  /// and [callStaticStringMethod].
+  String callStaticStringMethodByName(
+      String name, String signature, List<dynamic> args) {
+    final mID = getStaticMethodID(name, signature);
+    final result = callStaticStringMethod(mID, args);
+    return result;
+  }
+
+  /// Retrieves the value of the field denoted by [fieldID]
+  String getStaticStringField(JFieldID fieldID) {
+    final result = _env.GetStaticObjectField(_cls, fieldID);
+    _env.checkException();
+    final str = _env.asDartString(result);
+    _env.DeleteLocalRef(result);
+    return str;
+  }
+
+  /// Retrieve field of given [name] and [signature]
+  String getStaticStringFieldByName(String name, String signature) {
+    final fID = getStaticFieldID(name, signature);
+    final result = getStaticStringField(fID);
+    return result;
+  }
+
+  /// Calls method pointed to by [methodID] with [args] as arguments
   JniObject callStaticObjectMethod(JMethodID methodID, List<dynamic> args) {
     final jvArgs = Jni.jvalues(args);
     final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
@@ -895,7 +923,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  JniObject getObjectFieldByName(String name, String signature) {
+  JniObject getStaticObjectFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticObjectField(fID);
     return result;
@@ -928,7 +956,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  bool getBooleanFieldByName(String name, String signature) {
+  bool getStaticBooleanFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticBooleanField(fID);
     return result;
@@ -961,7 +989,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  int getByteFieldByName(String name, String signature) {
+  int getStaticByteFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticByteField(fID);
     return result;
@@ -994,7 +1022,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  int getCharFieldByName(String name, String signature) {
+  int getStaticCharFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticCharField(fID);
     return result;
@@ -1027,7 +1055,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  int getShortFieldByName(String name, String signature) {
+  int getStaticShortFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticShortField(fID);
     return result;
@@ -1060,7 +1088,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  int getIntFieldByName(String name, String signature) {
+  int getStaticIntFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticIntField(fID);
     return result;
@@ -1093,7 +1121,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  int getLongFieldByName(String name, String signature) {
+  int getStaticLongFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticLongField(fID);
     return result;
@@ -1126,7 +1154,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  double getFloatFieldByName(String name, String signature) {
+  double getStaticFloatFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticFloatField(fID);
     return result;
@@ -1159,7 +1187,7 @@ extension JniClassCallMethods on JniClass {
   }
 
   /// Retrieve field of given [name] and [signature]
-  double getDoubleFieldByName(String name, String signature) {
+  double getStaticDoubleFieldByName(String name, String signature) {
     final fID = getStaticFieldID(name, signature);
     final result = getStaticDoubleField(fID);
     return result;
@@ -1181,6 +1209,489 @@ extension JniClassCallMethods on JniClass {
       String name, String signature, List<dynamic> args) {
     final mID = getStaticMethodID(name, signature);
     final result = callStaticVoidMethod(mID, args);
+    return result;
+  }
+}
+
+extension JniInvokeMethods on Jni {
+  String invokeStringMethod(String className, String methodName,
+      String signature, List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticObjectMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    arena.releaseAll();
+    final str = env.asDartString(result);
+    env.DeleteLocalRef(result);
+    env.DeleteLocalRef(cls);
+    return str;
+  }
+
+  String retrieveStringField(
+      String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticObjectField(cls, fieldID);
+    env.checkException();
+    arena.releaseAll();
+    final str = env.asDartString(result);
+    env.DeleteLocalRef(result);
+    env.DeleteLocalRef(cls);
+    return str;
+  }
+
+  JniObject invokeObjectMethod(String className, String methodName,
+      String signature, List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticObjectMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    arena.releaseAll();
+    return JniObject._(env, result, cls);
+  }
+
+  JniObject retrieveObjectField(
+      String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticObjectField(cls, fieldID);
+    env.checkException();
+    arena.releaseAll();
+    return JniObject._(env, result, cls);
+  }
+
+  bool invokeBooleanMethod(String className, String methodName,
+      String signature, List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticBooleanMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result != 0;
+  }
+
+  bool retrieveBooleanField(
+      String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticBooleanField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result != 0;
+  }
+
+  int invokeByteMethod(String className, String methodName, String signature,
+      List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticByteMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int retrieveByteField(String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticByteField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int invokeCharMethod(String className, String methodName, String signature,
+      List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticCharMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int retrieveCharField(String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticCharField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int invokeShortMethod(String className, String methodName, String signature,
+      List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticShortMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int retrieveShortField(String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticShortField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int invokeIntMethod(String className, String methodName, String signature,
+      List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticIntMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int retrieveIntField(String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticIntField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int invokeLongMethod(String className, String methodName, String signature,
+      List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticLongMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  int retrieveLongField(String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticLongField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  double invokeFloatMethod(String className, String methodName,
+      String signature, List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticFloatMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  double retrieveFloatField(
+      String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticFloatField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  double invokeDoubleMethod(String className, String methodName,
+      String signature, List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticDoubleMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  double retrieveDoubleField(
+      String className, String fieldName, String signature) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final fieldNameChars = fieldName.toNativeChars(arena);
+    final signatueChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final fieldID = env.GetStaticFieldID(cls, fieldNameChars, signatueChars);
+    if (fieldID == nullptr) {
+      env.checkException();
+    }
+    final result = env.GetStaticDoubleField(cls, fieldID);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
+    return result;
+  }
+
+  void invokeVoidMethod(String className, String methodName, String signature,
+      List<dynamic> args) {
+    final arena = Arena();
+    final env = getEnv();
+    final classNameChars = className.toNativeChars(arena);
+    final methodNameChars = methodName.toNativeChars(arena);
+    final signatureChars = signature.toNativeChars(arena);
+    final cls = _bindings.LoadClass(classNameChars);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final methodID =
+        env.GetStaticMethodID(cls, methodNameChars, signatureChars);
+    if (methodID == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = Jni.jvalues(args, allocator: arena);
+    final result = env.CallStaticVoidMethodA(cls, methodID, jvArgs);
+    env.checkException();
+    env.DeleteLocalRef(cls);
+    arena.releaseAll();
     return result;
   }
 }

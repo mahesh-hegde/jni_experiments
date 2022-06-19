@@ -7,7 +7,7 @@
 
 * Clean up docs
 
-* Isolates with sendPort receivePort
+* Isolates with sendPort receivePort. Make JniGlobalRef sendable.
 
 * convert strings in JniObject methods' arguments.
 

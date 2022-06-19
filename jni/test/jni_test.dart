@@ -208,14 +208,26 @@ void main() {
     longClass.delete();
   });
 
+  // Actually it's not even required to get a reference to class
+  test("invoke_", () {
+    var m = jni.invokeLongMethod(
+        "java/lang/Long", "min", "(JJ)J", [JValueLong(1234), JValueLong(1324)]);
+	expect(m, equals(1234));
+  });
+
+  test("retrieve_", () {
+	var maxLong = jni.retrieveShortField("java/lang/Short", "MAX_VALUE", "S");
+	expect(maxLong, equals(32767));
+  });
+
   // Use callStringMethod if all you care about is a string result
   test("callStaticStringMethod", () {
     final longClass = jni.findClass("java/lang/Long");
     const n = 1223334444;
     final strFromJava = longClass.callStaticStringMethodByName(
         "toOctalString", "(J)Ljava/lang/String;", [n]);
-	expect(strFromJava, equals(n.toRadixString(8)));
-	longClass.delete();
+    expect(strFromJava, equals(n.toRadixString(8)));
+    longClass.delete();
   });
 
   test("JniGlobalRef", () {

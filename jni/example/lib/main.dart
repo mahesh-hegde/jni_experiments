@@ -66,8 +66,14 @@ void main() {
         runInitially: false),
     Example("Math.random()", () => randomDouble().toString(),
         runInitially: false),
-    if (Platform.isAndroid) Example("Minutes of usage since reboot",
-        () => (uptime() / (60*1000)).floor().toString())
+    if (Platform.isAndroid)
+      Example("Minutes of usage since reboot",
+          () => (uptime() / (60 * 1000)).floor().toString()),
+    if (Platform.isAndroid)
+      Example(
+          "Device name",
+          () => jni.retrieveStringField("android/os/Build",
+              "DEVICE", "Ljava/lang/String;")),
   ];
   runApp(MyApp(examples));
 }

@@ -4,6 +4,7 @@ import 'dart:io' as io;
 import 'package:path/path.dart';
 
 var targetTypes = {
+  "String": "String",
   "Object": "JniObject",
   "Boolean": "bool",
   "Byte": "int",
@@ -17,34 +18,54 @@ var targetTypes = {
 };
 
 var resultConverters = {
-  "Object": (String resultVar) => "JniObject._(_env, $resultVar, nullptr)",
-  "Boolean": (String resultVar) => "$resultVar != 0",
+  "String": (String resultVar) => "final str = _env.asDartString($resultVar);"
+		  "_env.DeleteLocalRef($resultVar);"
+		  "return str",
+  "Object": (String resultVar) => "return JniObject._(_env, $resultVar, nullptr)",
+  "Boolean": (String resultVar) => "return $resultVar != 0",
+};
+
+var invokeResultConverters = {
+  "String": (String resultVar) => "final str = env.asDartString($resultVar);"
+		  "env.DeleteLocalRef($resultVar);"
+		  "env.DeleteLocalRef(cls);"
+		  "return str",
+  "Object": (String resultVar) => "return JniObject._(env, $resultVar, cls)",
+  "Boolean": (String resultVar) => "return $resultVar != 0",
 };
 
 void main(List<String> args) {
   final script = io.Platform.script;
   final scriptDir = dirname(script.toFilePath(windows: io.Platform.isWindows));
-  final templateFileMethods = io.File(join(scriptDir, 'JniObject_MethodCalls'));
-  final methodTemplates = templateFileMethods.readAsStringSync();
-  final templateFileFields = io.File(join(scriptDir, 'JniObject_Fields'));
-  final fieldTemplates = templateFileFields.readAsStringSync();
+  final methodTemplates =
+      io.File(join(scriptDir, 'JniObject_MethodCalls')).readAsStringSync();
+  final fieldTemplates =
+      io.File(join(scriptDir, 'JniObject_Fields')).readAsStringSync();
+  final invokeTemplates =
+      io.File(join(scriptDir, 'Invoke_Static_Methods')).readAsStringSync();
+  final retrieveTemplates =
+      io.File(join(scriptDir, 'Retrieve_Static_Fields')).readAsStringSync();
 
   var outputPath = join("lib", "src", "jni.dart");
   final outputFile = io.File(outputPath);
   var sInst = StringBuffer();
   var sStatic = StringBuffer();
+  var sInvoke = StringBuffer();
   sInst.write("\n\n"
       "// AUTO GENERATED DO NOT EDIT\n"
       "// DELETE NEXT PART AND RE RUN GENERATOR AFTER CHANGING TEMPLATE\n\n"
       "\n"
       "extension JniObjectCallMethods on JniObject {");
   sStatic.write("\n\n"
-		  "extension JniClassCallMethods on JniClass {");
+      "extension JniClassCallMethods on JniClass {");
+  sInvoke.write("\n\n"
+      "extension JniInvokeMethods on Jni {");
   for (var t in targetTypes.keys) {
     void write(String template) {
-      final resultConverter = resultConverters[t] ?? (resultVar) => resultVar;
+      final resultConverter = resultConverters[t] ?? (resultVar) => "return $resultVar";
       final skel = template
-          .replaceAll("{TYPE}", t)
+          .replaceAll("{TYPE}", t == "String" ? "Object" : t)
+		  .replaceAll("{PTYPE}", t)
           .replaceAll("{TARGET_TYPE}", targetTypes[t]!)
           .replaceAll("{RESULT}", resultConverter("result"));
       final inst_ =
@@ -59,10 +80,26 @@ void main(List<String> args) {
     if (t != "Void") {
       write(fieldTemplates);
     }
+    var invokeResultConverter = (invokeResultConverters[t] ?? (String r) => "return $r");
+    void writeI(String template) {
+      final replaced = template
+          .replaceAll("{TYPE}", t == "String" ? "Object" : t)
+		  .replaceAll("{PTYPE}", t)
+          .replaceAll("{TARGET_TYPE}", targetTypes[t]!)
+          .replaceAll("{CLS_REF_DEL}",
+              t == "Object" || t == "String" ? "" : "env.DeleteLocalRef(cls);\n")
+          .replaceAll("{INVOKE_RESULT}", invokeResultConverter("result"));
+      sInvoke.write(replaced);
+    }
+	writeI(invokeTemplates);
+    if (t != "Void") {
+		writeI(retrieveTemplates);
+	}
   }
   sInst.write("}");
   sStatic.write("}");
-  for (var s in [sInst, sStatic]) {
+  sInvoke.write("}");
+  for (var s in [sInst, sStatic, sInvoke]) {
     outputFile.writeAsStringSync(s.toString(),
         mode: io.FileMode.append, flush: true);
   }
