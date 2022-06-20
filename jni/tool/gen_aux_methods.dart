@@ -31,7 +31,7 @@ var invokeResultConverters = {
       "env.DeleteLocalRef($resultVar);"
       "env.DeleteLocalRef(cls);"
       "return str",
-  "Object": (String resultVar) => "return JniObject._(env, $resultVar, cls)",
+  "Object": (String resultVar) => "return JniObject._(env, $resultVar, nullptr)",
   "Boolean": (String resultVar) => "return $resultVar != 0",
 };
 

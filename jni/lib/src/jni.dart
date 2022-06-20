@@ -223,7 +223,7 @@ class Jni {
     return JniObject._(env, obj, cls);
   }
 
-  static void _jvalueFill(Pointer<JValue> pos, dynamic arg) {
+  static void _fillJValue(Pointer<JValue> pos, dynamic arg) {
     // switch on runtimeType is not guaranteed to work?
     switch (arg.runtimeType) {
       case int:
@@ -268,7 +268,7 @@ class Jni {
     for (int i = 0; i < args.length; i++) {
       final arg = args[i];
       final pos = result.elementAt(i);
-      _jvalueFill(pos, arg);
+      _fillJValue(pos, arg);
     }
     return result;
   }
@@ -483,10 +483,10 @@ class JniClass {
 /// which is safe to be passed through threads.
 ///
 /// In a different thread, actual object can be reconstructed
-/// using [JniObject.fromGlobalRef] or [JniClass.fromGlobalRef]
+/// using [JniObject.fromGlobalRef]
 ///
 /// It should be explicitly deleted after done, using
-/// [delete(env)] method, passing some env, eg: obtained using [Jni.getEnv].
+/// [delete] method, passing some env, eg: obtained using [Jni.getEnv].
 class JniGlobalObjectRef {
   final JObject _obj;
   final JClass _cls;
@@ -501,6 +501,12 @@ class JniGlobalObjectRef {
   }
 }
 
+/// Global reference type for JniClasses
+///
+/// Instead of passing local references between functions
+/// that may be run on different threads, convert it
+/// using [JniClass.getGlobalRef] and reconstruct using
+/// [JniClass.fromGlobalRef]
 class JniGlobalClassRef {
   JniGlobalClassRef._(this._cls);
   final JClass _cls;
@@ -513,4 +519,42 @@ class JniGlobalClassRef {
 
 // TODO: Any better way to allocate this?
 final _initMethodName = "<init>".toNativeChars();
+
+/// class used to convert dart types passed to convenience methods
+/// into their corresponding Java values.
+///
+/// Similar to Jni.jvalues, but instead of a pointer, an instance
+/// with a dispose method is returned.
+/// This allows us to take dart strings.
+///
+/// Returned value is allocated using provided allocator.
+/// But default allocator may be used for string conversions.
+class _JValueArgs {
+  late Pointer<JValue> values;
+  final List<JObject> createdRefs = [];
+
+  _JValueArgs(List<dynamic> args, Pointer<JniEnv> env,
+      [Allocator allocator = malloc]) {
+    values = allocator<JValue>(args.length);
+    for (int i = 0; i < args.length; i++) {
+      final arg = args[i];
+      final ptr = values.elementAt(i);
+      if (arg is String) {
+        final jstr = env.asJString(arg);
+        ptr.ref.l = jstr;
+        createdRefs.add(jstr);
+      } else if (arg is JniObject) {
+        ptr.ref.l = arg._obj;
+      } else {
+        Jni._fillJValue(ptr, arg);
+      }
+    }
+  }
+
+  void disposeIn(Pointer<JniEnv> env) {
+    for (var ref in createdRefs) {
+      env.DeleteLocalRef(ref);
+    }
+  }
+}
 

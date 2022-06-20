@@ -5,10 +5,11 @@ part of 'jni.dart';
 extension JniClassCallMethods on JniClass {
   /// Calls method pointed to by [methodID] with [args] as arguments
   String callStaticStringMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     final str = _env.asDartString(result);
     _env.DeleteLocalRef(result);
     return str;
@@ -42,10 +43,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   JniObject callStaticObjectMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticObjectMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return JniObject._(_env, result, nullptr);
   }
 
@@ -75,10 +77,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   bool callStaticBooleanMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticBooleanMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticBooleanMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result != 0;
   }
 
@@ -108,10 +111,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callStaticByteMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticByteMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticByteMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -141,10 +145,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callStaticCharMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticCharMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticCharMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -174,10 +179,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callStaticShortMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticShortMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticShortMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -207,10 +213,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callStaticIntMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticIntMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticIntMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -240,10 +247,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callStaticLongMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticLongMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticLongMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -273,10 +281,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   double callStaticFloatMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticFloatMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticFloatMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -306,10 +315,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   double callStaticDoubleMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticDoubleMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticDoubleMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -339,10 +349,11 @@ extension JniClassCallMethods on JniClass {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   void callStaticVoidMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallStaticVoidMethodA(_cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallStaticVoidMethodA(_cls, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 

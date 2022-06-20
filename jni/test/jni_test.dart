@@ -196,7 +196,7 @@ void main() {
     for (int i = 0; i < 100; i++) {
       int r = random.callIntMethod(nextIntMethod, [256 * 256]);
       int bits = 0;
-      int jbc = longClass.callStaticIntMethod(bitCountMethod, [r]);
+      int jbc = longClass.callStaticIntMethod(bitCountMethod, [JValueLong(r)]);
       while (r != 0) {
         bits += r % 2;
         r = (r / 2).floor();
@@ -212,12 +212,12 @@ void main() {
   test("invoke_", () {
     var m = jni.invokeLongMethod(
         "java/lang/Long", "min", "(JJ)J", [JValueLong(1234), JValueLong(1324)]);
-	expect(m, equals(1234));
+    expect(m, equals(1234));
   });
 
   test("retrieve_", () {
-	var maxLong = jni.retrieveShortField("java/lang/Short", "MAX_VALUE", "S");
-	expect(maxLong, equals(32767));
+    var maxLong = jni.retrieveShortField("java/lang/Short", "MAX_VALUE", "S");
+    expect(maxLong, equals(32767));
   });
 
   // Use callStringMethod if all you care about is a string result
@@ -225,9 +225,29 @@ void main() {
     final longClass = jni.findClass("java/lang/Long");
     const n = 1223334444;
     final strFromJava = longClass.callStaticStringMethodByName(
-        "toOctalString", "(J)Ljava/lang/String;", [n]);
+        "toOctalString", "(J)Ljava/lang/String;", [JValueLong(n)]);
     expect(strFromJava, equals(n.toRadixString(8)));
     longClass.delete();
+  });
+
+  // In JniObject, JniClass, and retrieve_/invoke_ methods
+  // you can also pass Dart strings, apart from range of types
+  // allowed by Jni.jvalues
+  // They will be converted automatically.
+  test("Passing strings in arguments", () {
+    final out = jni.retrieveObjectField(
+        "java/lang/System", "out", "Ljava/io/PrintStream;");
+    // uncomment next line to see output
+	// (\n because test runner prints first char at end of the line)
+    //out.callVoidMethodByName(
+    //    "println", "(Ljava/lang/Object;)V", ["\nWorks (Apparently)"]);
+    out.delete();
+  });
+
+  test("Passing strings in arguments 2", () {
+    var twelve = jni.invokeByteMethod(
+        "java/lang/Byte", "parseByte", "(Ljava/lang/String;)B", ["12"]);
+    expect(twelve, equals(12));
   });
 
   test("JniGlobalRef", () {

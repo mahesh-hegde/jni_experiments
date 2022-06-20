@@ -5,10 +5,11 @@ part of 'jni.dart';
 extension JniObjectCallMethods on JniObject {
   /// Calls method pointed to by [methodID] with [args] as arguments
   String callStringMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     final str = _env.asDartString(result);
     _env.DeleteLocalRef(result);
     return str;
@@ -42,10 +43,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   JniObject callObjectMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallObjectMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return JniObject._(_env, result, nullptr);
   }
 
@@ -75,10 +77,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   bool callBooleanMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallBooleanMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallBooleanMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result != 0;
   }
 
@@ -108,10 +111,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callByteMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallByteMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallByteMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -140,10 +144,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callCharMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallCharMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallCharMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -172,10 +177,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callShortMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallShortMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallShortMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -204,10 +210,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callIntMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallIntMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallIntMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -236,10 +243,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   int callLongMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallLongMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallLongMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -268,10 +276,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   double callFloatMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallFloatMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallFloatMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -301,10 +310,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   double callDoubleMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallDoubleMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallDoubleMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 
@@ -334,10 +344,11 @@ extension JniObjectCallMethods on JniObject {
 
   /// Calls method pointed to by [methodID] with [args] as arguments
   void callVoidMethod(JMethodID methodID, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final result = _env.CallVoidMethodA(_obj, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, _env);
+    final result = _env.CallVoidMethodA(_obj, methodID, jvArgs.values);
     _env.checkException();
-    calloc.free(jvArgs);
+    jvArgs.disposeIn(_env);
+    calloc.free(jvArgs.values);
     return result;
   }
 

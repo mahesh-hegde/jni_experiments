@@ -33,8 +33,8 @@ extension AdditionalJniEnvMethods on Pointer<JniEnv> {
   }
 
   /// Return a new [JString] from contents of [s].
-  JString asJString(String s) {
-    final utf = s.toNativeUtf8().cast<Char>();
+  JString asJString(String s, [Allocator allocator = malloc]) {
+    final utf = s.toNativeUtf8(allocator: allocator).cast<Char>();
     final result = NewStringUTF(utf);
     malloc.free(utf);
     return result;

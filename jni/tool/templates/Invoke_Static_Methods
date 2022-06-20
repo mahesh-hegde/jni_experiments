@@ -12,9 +12,10 @@
 	if (methodID == nullptr) {
 		env.checkException();
 	}
-	final jvArgs = Jni.jvalues(args, allocator: arena);
-	final result = env.CallStatic{TYPE}MethodA(cls, methodID, jvArgs);
+	final jvArgs = _JValueArgs(args, env, arena);
+	final result = env.CallStatic{TYPE}MethodA(cls, methodID, jvArgs.values);
 	env.checkException();
+	jvArgs.disposeIn(env);
 	{CLS_REF_DEL}arena.releaseAll();
 	{INVOKE_RESULT};
   }

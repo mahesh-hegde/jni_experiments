@@ -19,9 +19,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticObjectMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticObjectMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     arena.releaseAll();
     final str = env.asDartString(result);
     env.DeleteLocalRef(result);
@@ -69,11 +70,12 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticObjectMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticObjectMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     arena.releaseAll();
-    return JniObject._(env, result, cls);
+    return JniObject._(env, result, nullptr);
   }
 
   JniObject retrieveObjectField(
@@ -94,7 +96,7 @@ extension JniInvokeMethods on Jni {
     final result = env.GetStaticObjectField(cls, fieldID);
     env.checkException();
     arena.releaseAll();
-    return JniObject._(env, result, cls);
+    return JniObject._(env, result, nullptr);
   }
 
   bool invokeBooleanMethod(String className, String methodName,
@@ -113,9 +115,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticBooleanMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticBooleanMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result != 0;
@@ -159,9 +162,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticByteMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticByteMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -204,9 +208,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticCharMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticCharMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -249,9 +254,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticShortMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticShortMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -294,9 +300,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticIntMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticIntMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -339,9 +346,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticLongMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticLongMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -384,9 +392,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticFloatMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticFloatMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -430,9 +439,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticDoubleMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticDoubleMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
@@ -476,9 +486,10 @@ extension JniInvokeMethods on Jni {
     if (methodID == nullptr) {
       env.checkException();
     }
-    final jvArgs = Jni.jvalues(args, allocator: arena);
-    final result = env.CallStaticVoidMethodA(cls, methodID, jvArgs);
+    final jvArgs = _JValueArgs(args, env, arena);
+    final result = env.CallStaticVoidMethodA(cls, methodID, jvArgs.values);
     env.checkException();
+    jvArgs.disposeIn(env);
     env.DeleteLocalRef(cls);
     arena.releaseAll();
     return result;
