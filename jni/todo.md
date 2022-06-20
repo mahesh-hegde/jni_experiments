@@ -11,10 +11,6 @@
 
 * convert strings in JniObject methods' arguments.
 
-* callStringMethod, callStaticStringMethod
-
-* callStaticMethod on Jni type, no need to lookup class
-
 * Documentation & check style
 
 * Clean up docs
