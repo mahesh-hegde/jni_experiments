@@ -55,6 +55,34 @@ int uptime() {
   return uptime;
 }
 
+void quit() {
+  var activity = jni.wrap(jni.getCurrentActivity());
+  activity.callVoidMethodByName("finish", "()V", []);
+  activity.delete();
+}
+
+void showToast(String text) {
+  // This is example for calling you app's custom java code.
+  // You place the AnyToast class in you app's android/ source
+  // Folder, with a Keep annotation or appropriate proguard rules
+  // to retain the class in release mode.
+  // In this example, AnyToast class is just a type of `Toast` that
+  // can be called from any thread. See
+  // android/app/src/main/java/dev/dart/jni_example/AnyToast.java
+  jni.invokeObjectMethod(
+      "dev/dart/jni_example/AnyToast",
+      "makeText",
+      "(Landroid/app/Activity;Landroid/content/Context;"
+          "Ljava/lang/CharSequence;I)"
+          "Ldev/dart/jni_example/AnyToast;",
+      [
+        jni.getCurrentActivity(),
+        jni.getCachedApplicationContext(),
+        ":-)",
+        0
+      ]).callVoidMethodByName("show", "()V", []);
+}
+
 void main() {
   if (!Platform.isAndroid) {
     Jni.spawn();
@@ -62,18 +90,28 @@ void main() {
   jni = Jni.getInstance();
   final examples = [
     Example("String.valueOf(1332)", () => localToJavaString(1332)),
-    Example("Generate random number", () => random(180).toString(),
-        runInitially: false),
-    Example("Math.random()", () => randomDouble().toString(),
-        runInitially: false),
-    if (Platform.isAndroid)
+    Example("Generate random number", () => random(180), runInitially: false),
+    Example("Math.random()", () => randomDouble(), runInitially: false),
+    if (Platform.isAndroid) ...[
       Example("Minutes of usage since reboot",
-          () => (uptime() / (60 * 1000)).floor().toString()),
-    if (Platform.isAndroid)
+          () => (uptime() / (60 * 1000)).floor()),
       Example(
           "Device name",
-          () => jni.retrieveStringField("android/os/Build",
-              "DEVICE", "Ljava/lang/String;")),
+          () => jni.retrieveStringField(
+              "android/os/Build", "DEVICE", "Ljava/lang/String;")),
+      Example(
+        "Package name",
+        () => jni.wrap(jni.getCurrentActivity()).callStringMethodByName(
+            "getPackageName", "()Ljava/lang/String;", []),
+      ),
+      Example("Show toast", () => showToast("Hello from JNI!"),
+          runInitially: false),
+      Example(
+        "Quit",
+        quit,
+        runInitially: false,
+      ),
+    ]
   ];
   runApp(MyApp(examples));
 }
@@ -146,7 +184,7 @@ class _ExampleCardState extends State<ExampleCard> {
     var hasError = false;
     if (_run) {
       try {
-        result = eg.callback();
+        result = eg.callback().toString();
       } on Exception catch (e) {
         hasError = true;
         result = e.toString();

@@ -32,5 +32,7 @@ FFI_PLUGIN_EXPORT jobject GetClassLoader();
 
 FFI_PLUGIN_EXPORT jobject GetApplicationContext();
 
+FFI_PLUGIN_EXPORT jobject GetCurrentActivity();
+
 FFI_PLUGIN_EXPORT void SetJNILogging(int level);
 

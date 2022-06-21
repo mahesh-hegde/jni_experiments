@@ -15,9 +15,8 @@ static struct {
 	JavaVM *jvm;
 	jobject classLoader;
 	jmethodID loadClassMethod;
-	jobject mainActivityObject;
+	jobject currentActivity;
 	jobject appContext;
-	// TODO: Update mainActivity and context using ActivityAware plugin
 } jni = {NULL, NULL, NULL, NULL, NULL};
 
 thread_local JNIEnv *jniEnv = NULL;
@@ -49,40 +48,6 @@ void jni_log(int level, const char *format, ...) {
 FFI_PLUGIN_EXPORT
 JavaVM *GetJavaVM() { return jni.jvm; }
 
-/// Returns Application classLoader (on Android), 
-/// which can be used to load application and platform classes.
-/// ...
-/// On other platforms, NULL is returned.
-FFI_PLUGIN_EXPORT
-jobject GetClassLoader() {
-	return jni.classLoader;
-}
-
-/// Returns application context on Android.
-///
-/// On other platforms, NULL is returned.
-FFI_PLUGIN_EXPORT
-jobject GetApplicationContext() {
-	return jni.appContext;
-}
-
-/// Load class through platform-specific mechanism
-/// ...
-/// Currently uses application classloader on android,
-/// and JNIEnv->FindClass on other platforms.
-FFI_PLUGIN_EXPORT
-jclass LoadClass(const char *name) {
-	jclass cls = NULL;
-#ifdef __ANDROID__
-	jstring className = (*jniEnv)->NewStringUTF(jniEnv, name);
-	cls = (*jniEnv)->CallObjectMethod(jniEnv, jni.classLoader,
-	                                  jni.loadClassMethod, className);
-#else
-	cls = (*jniEnv)->FindClass(jniEnv, name);
-#endif
-	return cls;
-};
-
 static inline void load_class(jclass *cls, const char *name) {
 	if (*cls == NULL) {
 #ifdef __ANDROID__
@@ -103,6 +68,29 @@ static inline void attach_thread() {
 	}
 }
 
+/// Returns Application classLoader (on Android), 
+/// which can be used to load application and platform classes.
+/// ...
+/// On other platforms, NULL is returned.
+FFI_PLUGIN_EXPORT
+jobject GetClassLoader() {
+	attach_thread();
+	return (*jniEnv)->NewLocalRef(jniEnv, jni.classLoader);
+}
+
+
+/// Load class through platform-specific mechanism
+/// ...
+/// Currently uses application classloader on android,
+/// and JNIEnv->FindClass on other platforms.
+FFI_PLUGIN_EXPORT
+jclass LoadClass(const char *name) {
+	jclass cls = NULL;
+	attach_thread();
+	load_class(&cls, name);
+	return cls;
+};
+
 FFI_PLUGIN_EXPORT
 JNIEnv *GetJniEnv() {
 	if (jni.jvm == NULL) {
@@ -111,6 +99,26 @@ JNIEnv *GetJniEnv() {
 	attach_thread();
 	return jniEnv;
 }
+
+/// Returns application context on Android.
+///
+/// On other platforms, NULL is returned.
+FFI_PLUGIN_EXPORT
+jobject GetApplicationContext() {
+	// Any publicly callable method
+	// can be called from an unattached thread.
+	// I Learned this the hard way.
+	attach_thread();
+	return (*jniEnv)->NewLocalRef(jniEnv, jni.appContext);
+}
+
+/// Returns current activity of the app
+FFI_PLUGIN_EXPORT
+jobject GetCurrentActivity() {
+	attach_thread();
+	return (*jniEnv)->NewLocalRef(jniEnv, jni.currentActivity);
+}
+
 
 static inline void load_method(jclass cls, jmethodID *res, const char *name,
                                const char *sig) {
@@ -131,7 +139,6 @@ JNIEXPORT void JNICALL Java_dev_dart_jni_JniPlugin_initializeJni(
     JNIEnv *env, jobject obj, jobject appContext, jobject classLoader) {
 	jniEnv = env;
 	(*env)->GetJavaVM(env, &jni.jvm);
-	jni.mainActivityObject = (*env)->NewGlobalRef(env, obj);
 	jni.classLoader = (*env)->NewGlobalRef(env, classLoader);
 	jni.appContext = (*env)->NewGlobalRef(env, appContext);
 	jclass classLoaderClass = (*env)->GetObjectClass(env, classLoader);
@@ -139,6 +146,19 @@ JNIEXPORT void JNICALL Java_dev_dart_jni_JniPlugin_initializeJni(
 	    (*env)->GetMethodID(env, classLoaderClass, "loadClass",
 	                        "(Ljava/lang/String;)Ljava/lang/Class;");
 }
+
+JNIEXPORT void JNICALL Java_dev_dart_jni_JniPlugin_setJniActivity(JNIEnv *env, jobject obj, jobject activity, jobject context) {
+	jniEnv = env;
+	if (jni.currentActivity != NULL) {
+		(*env)->DeleteGlobalRef(env, jni.currentActivity);
+	}
+	jni.currentActivity = (*env)->NewGlobalRef(env, activity);
+	if (jni.appContext != NULL) {
+		(*env)->DeleteGlobalRef(env, jni.appContext);
+	}
+	jni.appContext = (*env)->NewGlobalRef(env, context);
+}
+
 // Sometimes you may get linker error trying to link JNI_CreateJavaVM APIs
 // on Android NDK. So IFDEF is required.
 #else

@@ -185,6 +185,11 @@ class Jni {
     return _bindings.GetApplicationContext();
   }
 
+  /// Returns current activity
+  JObject getCurrentActivity() {
+	return _bindings.GetCurrentActivity();
+  }
+
   /// Get the initial classLoader of the application.
   ///
   /// This is especially useful on Android, where
@@ -223,6 +228,13 @@ class Jni {
     return JniObject._(env, obj, cls);
   }
 
+  /// Wraps a JObject ref in a JniObject
+  /// The original ref is stored in JniObject, and 
+  /// deleted with the latter's [delete] method.
+  JniObject wrap(JObject ref) {
+	return JniObject._(getEnv(), ref, nullptr);
+  }
+
   static void _fillJValue(Pointer<JValue> pos, dynamic arg) {
     // switch on runtimeType is not guaranteed to work?
     switch (arg.runtimeType) {
@@ -239,6 +251,9 @@ class Jni {
       case double:
         pos.ref.d = arg;
         break;
+	  case JValueFloat:
+		pos.ref.f = (arg as JValueFloat).value;
+		break;
       case JValueLong:
         pos.ref.j = (arg as JValueLong).value;
         break;
@@ -295,8 +310,15 @@ class JValueByte {
   JValueByte(this.value);
 }
 
+/// Use this class as wrapper to convert an double
+/// to Java `float` in jvalues method.
+class JValueFloat {
+  double value;
+  JValueFloat(this.value);
+}
+
 /// Use this class as wrapper to convert an integer
-/// to Java `byte` in jvalues method.
+/// to Java `char` in jvalues method.
 class JValueChar {
   int value;
   JValueChar(this.value);
@@ -321,6 +343,9 @@ class JniObject {
   final JObject _obj;
   final Pointer<JniEnv> _env;
   JniObject._(this._env, this._obj, this._cls);
+
+  JniObject.fromJObject(Pointer<JniEnv> env, JObject obj)
+		  : _env = env, _obj = obj, _cls = nullptr;
 
   /// Reconstructs a JniObject from [r]
   ///
@@ -404,6 +429,9 @@ class JniClass {
   final JClass _cls;
   final Pointer<JniEnv> _env;
   JniClass._(this._env, this._cls);
+
+  JniClass.fromJClass(Pointer<JniEnv> env, JClass cls)
+		  : _env = env, _cls = cls;
 
   JniClass.fromGlobalRef(Pointer<JniEnv> env, JniGlobalClassRef r)
       : _env = env,
