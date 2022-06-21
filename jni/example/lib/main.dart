@@ -56,9 +56,9 @@ int uptime() {
 }
 
 void quit() {
-  var activity = jni.wrap(jni.getCurrentActivity());
-  activity.callVoidMethodByName("finish", "()V", []);
-  activity.delete();
+  jni
+      .wrap(jni.getCurrentActivity())
+      .use((ac) => ac.callVoidMethodByName("finish", "()V", []));
 }
 
 void showToast(String text) {
@@ -101,8 +101,9 @@ void main() {
               "android/os/Build", "DEVICE", "Ljava/lang/String;")),
       Example(
         "Package name",
-        () => jni.wrap(jni.getCurrentActivity()).callStringMethodByName(
-            "getPackageName", "()Ljava/lang/String;", []),
+        () => jni.wrap(jni.getCurrentActivity()).use((activity) => activity
+            .callStringMethodByName(
+                "getPackageName", "()Ljava/lang/String;", [])),
       ),
       Example("Show toast", () => showToast("Hello from JNI!"),
           runInitially: false),

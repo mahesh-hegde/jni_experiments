@@ -250,6 +250,13 @@ void main() {
     expect(twelve, equals(12));
   });
 
+  // You can use() method on JniObject for using once and deleting
+  test("use() method", () {
+	  var randomInt = jni.newInstance("java/util/Random", "()V", [])
+			  .use((random) => random.callIntMethodByName("nextInt", "(I)I", [15]));
+	  expect(randomInt, lessThan(15));
+  });
+
   test("JniGlobalRef", () {
     var random = jni.newInstance("java/util/Random", "()V", []);
     var rg = random.getGlobalRef();

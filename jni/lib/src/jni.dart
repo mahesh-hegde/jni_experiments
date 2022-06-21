@@ -221,7 +221,13 @@ class Jni {
     final sigChars = ctorSignature.toNativeChars();
     final env = getEnv();
     final cls = _bindings.LoadClass(nameChars);
+	if (cls == nullptr) {
+		env.checkException();
+	}
     final ctor = env.GetMethodID(cls, _initMethodName, sigChars);
+	if (ctor == nullptr) {
+		env.checkException();
+	}
     final obj = env.NewObjectA(cls, ctor, Jni.jvalues(args));
     calloc.free(nameChars);
     calloc.free(sigChars);
@@ -420,6 +426,15 @@ class JniObject {
       _env.NewGlobalRef(_cls),
     );
   }
+
+  /// Use this [JniObject] to execute callback, then delete.
+  ///
+  /// Useful in expression chains.
+  T use<T>(T Function(JniObject) callback) {
+	var result = callback(this);
+	delete();
+	return result;
+  }
 }
 
 /// Convenience wrapper around a JNI local class reference.
@@ -505,6 +520,18 @@ class JniClass {
   void delete() {
     _env.DeleteLocalRef(_cls);
   }
+
+  /// Use this [JniClass] to execute callback, then delete.
+  ///
+  /// Useful in expression chains.
+  T use<T>(T Function(JniClass) callback) {
+	// TODO: Maybe use a mixin or something?
+	// JniClass and JniObject have some similar functionality.
+	var result = callback(this);
+	delete();
+	return result;
+  }
+
 }
 
 /// Represents a JNI global reference
