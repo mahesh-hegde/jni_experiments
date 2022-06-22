@@ -47,6 +47,9 @@
 library jni;
 
 export 'src/jni.dart';
+export 'src/jniclass.dart';
+export 'src/jniobject.dart';
+export 'src/jvalues.dart' hide JValueArgs, toJValues;
 export 'src/extensions.dart'
     show StringMethodsForJni, CharPtrMethodsForJni, AdditionalJniEnvMethods;
 export 'src/jni_bindings_generated.dart'; // currently just export all

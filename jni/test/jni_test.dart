@@ -266,7 +266,7 @@ void main() {
       var randomInt = random.callIntMethodByName("nextInt", "(I)I", [256]);
       expect(randomInt, lessThan(256));
       random.delete();
-    }).then((_) => rg.delete(jni.getEnv()));
+    }).then((_) => rg.deleteIn(jni.getEnv()));
     random.delete();
   });
 

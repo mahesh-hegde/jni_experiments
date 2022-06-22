@@ -1,6 +1,5 @@
 import 'dart:ffi';
 
-import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 import 'jni_bindings_generated.dart';

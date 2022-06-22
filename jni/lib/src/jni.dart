@@ -6,9 +6,11 @@ import 'package:path/path.dart';
 
 import 'jni_bindings_generated.dart';
 import 'extensions.dart';
+import 'jvalues.dart';
 
-part 'jniclass_methods_generated.dart';
-part 'jniobject_methods_generated.dart';
+import 'jniobject.dart';
+import 'jniclass.dart';
+
 part 'direct_methods_generated.dart';
 
 String _getLibraryFileName(String base) {
@@ -187,7 +189,7 @@ class Jni {
 
   /// Returns current activity
   JObject getCurrentActivity() {
-	return _bindings.GetCurrentActivity();
+    return _bindings.GetCurrentActivity();
   }
 
   /// Get the initial classLoader of the application.
@@ -208,7 +210,7 @@ class Jni {
     final env = getEnv();
     env.checkException();
     calloc.free(nameChars);
-    return JniClass._(env, cls);
+    return JniClass.of(env, cls);
   }
 
   /// Constructs an instance of class with given args.
@@ -221,63 +223,27 @@ class Jni {
     final sigChars = ctorSignature.toNativeChars();
     final env = getEnv();
     final cls = _bindings.LoadClass(nameChars);
-	if (cls == nullptr) {
-		env.checkException();
-	}
-    final ctor = env.GetMethodID(cls, _initMethodName, sigChars);
-	if (ctor == nullptr) {
-		env.checkException();
-	}
-	final jvArgs = _JValueArgs(args, env);
+    if (cls == nullptr) {
+      env.checkException();
+    }
+    final ctor = env.GetMethodID(cls, ctorLookupChars, sigChars);
+    if (ctor == nullptr) {
+      env.checkException();
+    }
+    final jvArgs = JValueArgs(args, env);
     final obj = env.NewObjectA(cls, ctor, jvArgs.values);
-	calloc.free(jvArgs.values);
-	jvArgs.disposeIn(env);
+    calloc.free(jvArgs.values);
+    jvArgs.disposeIn(env);
     calloc.free(nameChars);
     calloc.free(sigChars);
-    return JniObject._(env, obj, cls);
+    return JniObject.of(env, obj, cls);
   }
 
   /// Wraps a JObject ref in a JniObject
-  /// The original ref is stored in JniObject, and 
+  /// The original ref is stored in JniObject, and
   /// deleted with the latter's [delete] method.
   JniObject wrap(JObject ref) {
-	return JniObject._(getEnv(), ref, nullptr);
-  }
-
-  static void _fillJValue(Pointer<JValue> pos, dynamic arg) {
-    // switch on runtimeType is not guaranteed to work?
-    switch (arg.runtimeType) {
-      case int:
-        pos.ref.i = arg;
-        break;
-      case bool:
-        pos.ref.z = arg ? 1 : 0;
-        break;
-      case Pointer<Void>:
-      case Pointer<Never>:
-        pos.ref.l = arg;
-        break;
-      case double:
-        pos.ref.d = arg;
-        break;
-	  case JValueFloat:
-		pos.ref.f = (arg as JValueFloat).value;
-		break;
-      case JValueLong:
-        pos.ref.j = (arg as JValueLong).value;
-        break;
-      case JValueShort:
-        pos.ref.s = (arg as JValueShort).value;
-        break;
-      case JValueChar:
-        pos.ref.c = (arg as JValueChar).value;
-        break;
-      case JValueByte:
-        pos.ref.b = (arg as JValueByte).value;
-        break;
-      default:
-        throw "cannot convert ${arg.runtimeType} to jvalue";
-    }
+    return JniObject.of(getEnv(), ref, nullptr);
   }
 
   /// Converts passed arguments to JValue array
@@ -288,331 +254,6 @@ class Jni {
   /// to convert to other primitive types instead.
   static Pointer<JValue> jvalues(List<dynamic> args,
       {Allocator allocator = calloc}) {
-    Pointer<JValue> result = allocator<JValue>(args.length);
-    for (int i = 0; i < args.length; i++) {
-      final arg = args[i];
-      final pos = result.elementAt(i);
-      _fillJValue(pos, arg);
-    }
-    return result;
+    return toJValues(args, allocator: allocator);
   }
 }
-
-/// Use this class as wrapper to convert an integer
-/// to Java `long` in jvalues method.
-class JValueLong {
-  int value;
-  JValueLong(this.value);
-}
-
-/// Use this class as wrapper to convert an integer
-/// to Java `short` in jvalues method.
-class JValueShort {
-  int value;
-  JValueShort(this.value);
-}
-
-/// Use this class as wrapper to convert an integer
-/// to Java `byte` in jvalues method.
-class JValueByte {
-  int value;
-  JValueByte(this.value);
-}
-
-/// Use this class as wrapper to convert an double
-/// to Java `float` in jvalues method.
-class JValueFloat {
-  double value;
-  JValueFloat(this.value);
-}
-
-/// Use this class as wrapper to convert an integer
-/// to Java `char` in jvalues method.
-class JValueChar {
-  int value;
-  JValueChar(this.value);
-  JValueChar.fromString(String s) : value = 0 {
-    if (s.length != 1) {
-      throw "Expected string of length 1";
-    }
-    value = s.codeUnitAt(0).toInt();
-  }
-}
-
-/// JniObject is a convenience wrapper around a JNI local object reference.
-///
-/// It holds the object, its associated associated jniEnv etc..
-/// It should be distroyed with [delete] method after done.
-///
-/// It's valid only in the thread it was created.
-/// When passing to code that might run in a different thread (eg: a callback),
-/// consider obtaining a global reference and reconstructing the object.
-class JniObject {
-  JClass _cls;
-  final JObject _obj;
-  final Pointer<JniEnv> _env;
-  JniObject._(this._env, this._obj, this._cls);
-
-  JniObject.fromJObject(Pointer<JniEnv> env, JObject obj)
-		  : _env = env, _obj = obj, _cls = nullptr;
-
-  /// Reconstructs a JniObject from [r]
-  ///
-  /// [r] still needs to be explicitly deleted when
-  /// it's no longer needed to construct any JniObjects.
-  JniObject.fromGlobalRef(Pointer<JniEnv> env, JniGlobalObjectRef r)
-      : _env = env,
-        _obj = env.NewLocalRef(r._obj),
-        _cls = env.NewLocalRef(r._cls);
-
-  /// Delete the local reference contained by this object.
-  ///
-  /// Do not use a JniObject after calling [delete].
-  void delete() {
-    _env.DeleteLocalRef(_obj);
-    if (_cls != nullptr) {
-      _env.DeleteLocalRef(_cls);
-    }
-  }
-
-  JObject get jobject => _obj;
-  JObject get jclass => _cls;
-
-  /// Get a JniClass of this object's class.
-  JniClass getClass() {
-    if (_cls == nullptr) {
-      return JniClass._(_env, _env.GetObjectClass(_obj));
-    }
-    return JniClass._(_env, _env.NewLocalRef(_cls));
-  }
-
-  /// if the underlying JObject is string
-  /// converts it to string representation.
-  String asDartString() {
-    return _env.asDartString(_obj);
-  }
-
-  /// Returns method id for [name] on this object.
-  JMethodID getMethodID(String name, String signature) {
-    if (_cls == nullptr) {
-      _cls = _env.GetObjectClass(_obj);
-    }
-    final methodName = name.toNativeChars();
-    final methodSig = signature.toNativeChars();
-    final result = _env.GetMethodID(_cls, methodName, methodSig);
-    _env.checkException();
-    calloc.free(methodName);
-    calloc.free(methodSig);
-    return result;
-  }
-
-  /// Returns field id for [name] on this object.
-  JFieldID getFieldID(String name, String signature) {
-    if (_cls == nullptr) {
-      _cls = _env.GetObjectClass(_obj);
-    }
-    final methodName = name.toNativeChars();
-    final methodSig = signature.toNativeChars();
-    final result = _env.GetFieldID(_cls, methodName, methodSig);
-    _env.checkException();
-    calloc.free(methodName);
-    calloc.free(methodSig);
-    return result;
-  }
-
-  /// Get a global reference.
-  ///
-  /// This is useful for passing a JniObject between threads.
-  JniGlobalObjectRef getGlobalRef() {
-    return JniGlobalObjectRef._(
-      _env.NewGlobalRef(_obj),
-      _env.NewGlobalRef(_cls),
-    );
-  }
-
-  /// Use this [JniObject] to execute callback, then delete.
-  ///
-  /// Useful in expression chains.
-  T use<T>(T Function(JniObject) callback) {
-	var result = callback(this);
-	delete();
-	return result;
-  }
-}
-
-/// Convenience wrapper around a JNI local class reference.
-///
-/// Reference lifetime semantics are same as [JniObject].
-class JniClass {
-  final JClass _cls;
-  final Pointer<JniEnv> _env;
-  JniClass._(this._env, this._cls);
-
-  JniClass.fromJClass(Pointer<JniEnv> env, JClass cls)
-		  : _env = env, _cls = cls;
-
-  JniClass.fromGlobalRef(Pointer<JniEnv> env, JniGlobalClassRef r)
-      : _env = env,
-        _cls = env.NewLocalRef(r._cls);
-
-  JMethodID getConstructorID(String signature) {
-    final methodSig = signature.toNativeChars();
-    final methodID = _env.GetMethodID(_cls, _initMethodName, methodSig);
-    _env.checkException();
-    calloc.free(methodSig);
-    return methodID;
-  }
-
-  /// Construct new object using [ctor].
-  JniObject newObject(JMethodID ctor, List<dynamic> args) {
-    final jvArgs = Jni.jvalues(args);
-    final newObj = _env.NewObjectA(_cls, ctor, jvArgs);
-    _env.checkException();
-    calloc.free(jvArgs);
-    return JniObject._(_env, newObj, nullptr);
-  }
-
-  JMethodID _getMethodID(String name, String signature, bool isStatic) {
-    final methodName = name.toNativeChars();
-    final methodSig = signature.toNativeChars();
-    final result = isStatic
-        ? _env.GetStaticMethodID(_cls, methodName, methodSig)
-        : _env.GetMethodID(_cls, methodName, methodSig);
-    _env.checkException();
-    calloc.free(methodName);
-    calloc.free(methodSig);
-    return result;
-  }
-
-  JFieldID _getFieldID(String name, String signature, bool isStatic) {
-    final methodName = name.toNativeChars();
-    final methodSig = signature.toNativeChars();
-    final result = isStatic
-        ? _env.GetStaticFieldID(_cls, methodName, methodSig)
-        : _env.GetFieldID(_cls, methodName, methodSig);
-    _env.checkException();
-    calloc.free(methodName);
-    calloc.free(methodSig);
-    return result;
-  }
-
-  @pragma('vm:prefer-inline')
-  JMethodID getMethodID(String name, String signature) {
-    return _getMethodID(name, signature, false);
-  }
-
-  @pragma('vm:prefer-inline')
-  JMethodID getStaticMethodID(String name, String signature) {
-    return _getMethodID(name, signature, true);
-  }
-
-  @pragma('vm:prefer-inline')
-  JFieldID getFieldID(String name, String signature) {
-    return _getFieldID(name, signature, false);
-  }
-
-  @pragma('vm:prefer-inline')
-  JFieldID getStaticFieldID(String name, String signature) {
-    return _getFieldID(name, signature, true);
-  }
-
-  JClass get jclass => _cls;
-
-  JniGlobalClassRef getGlobalRef() =>
-      JniGlobalClassRef._(_env.NewGlobalRef(_cls));
-  void delete() {
-    _env.DeleteLocalRef(_cls);
-  }
-
-  /// Use this [JniClass] to execute callback, then delete.
-  ///
-  /// Useful in expression chains.
-  T use<T>(T Function(JniClass) callback) {
-	// TODO: Maybe use a mixin or something?
-	// JniClass and JniObject have some similar functionality.
-	var result = callback(this);
-	delete();
-	return result;
-  }
-
-}
-
-/// Represents a JNI global reference
-/// which is safe to be passed through threads.
-///
-/// In a different thread, actual object can be reconstructed
-/// using [JniObject.fromGlobalRef]
-///
-/// It should be explicitly deleted after done, using
-/// [delete] method, passing some env, eg: obtained using [Jni.getEnv].
-class JniGlobalObjectRef {
-  final JObject _obj;
-  final JClass _cls;
-  JniGlobalObjectRef._(this._obj, this._cls);
-
-  JObject get jobject => _obj;
-  JObject get jclass => _cls;
-
-  void delete(Pointer<JniEnv> env) {
-    env.DeleteGlobalRef(_obj);
-    env.DeleteGlobalRef(_cls);
-  }
-}
-
-/// Global reference type for JniClasses
-///
-/// Instead of passing local references between functions
-/// that may be run on different threads, convert it
-/// using [JniClass.getGlobalRef] and reconstruct using
-/// [JniClass.fromGlobalRef]
-class JniGlobalClassRef {
-  JniGlobalClassRef._(this._cls);
-  final JClass _cls;
-  JClass get jclass => _cls;
-
-  void delete(Pointer<JniEnv> env) {
-    env.DeleteGlobalRef(_cls);
-  }
-}
-
-// TODO: Any better way to allocate this?
-final _initMethodName = "<init>".toNativeChars();
-
-/// class used to convert dart types passed to convenience methods
-/// into their corresponding Java values.
-///
-/// Similar to Jni.jvalues, but instead of a pointer, an instance
-/// with a dispose method is returned.
-/// This allows us to take dart strings.
-///
-/// Returned value is allocated using provided allocator.
-/// But default allocator may be used for string conversions.
-class _JValueArgs {
-  late Pointer<JValue> values;
-  final List<JObject> createdRefs = [];
-
-  _JValueArgs(List<dynamic> args, Pointer<JniEnv> env,
-      [Allocator allocator = malloc]) {
-    values = allocator<JValue>(args.length);
-    for (int i = 0; i < args.length; i++) {
-      final arg = args[i];
-      final ptr = values.elementAt(i);
-      if (arg is String) {
-        final jstr = env.asJString(arg);
-        ptr.ref.l = jstr;
-        createdRefs.add(jstr);
-      } else if (arg is JniObject) {
-        ptr.ref.l = arg._obj;
-      } else {
-        Jni._fillJValue(ptr, arg);
-      }
-    }
-  }
-
-  void disposeIn(Pointer<JniEnv> env) {
-    for (var ref in createdRefs) {
-      env.DeleteLocalRef(ref);
-    }
-  }
-}
-
