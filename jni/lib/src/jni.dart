@@ -228,7 +228,10 @@ class Jni {
 	if (ctor == nullptr) {
 		env.checkException();
 	}
-    final obj = env.NewObjectA(cls, ctor, Jni.jvalues(args));
+	final jvArgs = _JValueArgs(args, env);
+    final obj = env.NewObjectA(cls, ctor, jvArgs.values);
+	calloc.free(jvArgs.values);
+	jvArgs.disposeIn(env);
     calloc.free(nameChars);
     calloc.free(sigChars);
     return JniObject._(env, obj, cls);
