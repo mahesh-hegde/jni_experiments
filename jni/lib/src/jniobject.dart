@@ -24,7 +24,9 @@ class JniObject {
   JniObject.of(this._env, this._obj, this._cls);
 
   JniObject.fromJObject(Pointer<JniEnv> env, JObject obj)
-		  : _env = env, _obj = obj, _cls = nullptr;
+      : _env = env,
+        _obj = obj,
+        _cls = nullptr;
 
   /// Reconstructs a JniObject from [r]
   ///
@@ -50,10 +52,10 @@ class JniObject {
 
   /// Returns underlying [JClass] of this [JniObject].
   JObject get jclass {
-	if (_cls == nullptr) {
-		_cls = _env.GetObjectClass(_obj);
-	}
-	return _cls;
+    if (_cls == nullptr) {
+      _cls = _env.GetObjectClass(_obj);
+    }
+    return _cls;
   }
 
   /// Get a JniClass of this object's class.
@@ -112,9 +114,9 @@ class JniObject {
   ///
   /// Useful in expression chains.
   T use<T>(T Function(JniObject) callback) {
-	var result = callback(this);
-	delete();
-	return result;
+    var result = callback(this);
+    delete();
+    return result;
   }
 }
 
@@ -139,4 +141,3 @@ class JniGlobalObjectRef {
     env.DeleteGlobalRef(_cls);
   }
 }
-

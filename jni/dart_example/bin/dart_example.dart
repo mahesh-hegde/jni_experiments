@@ -37,7 +37,8 @@ void writeText(String file) {
   // var out = new OutputStreamWriter(System.out)
   var out = jni.retrieveObjectField(
       "java/lang/System", "out", "Ljava/io/PrintStream;");
-  var outWriter = jni.newInstance("java/io/OutputStreamWriter", "(Ljava/io/OutputStream;)V", [out]);
+  var outWriter = jni.newInstance(
+      "java/io/OutputStreamWriter", "(Ljava/io/OutputStream;)V", [out]);
 
   // pdfTextStripper.writeText(pdDoc, out)
 

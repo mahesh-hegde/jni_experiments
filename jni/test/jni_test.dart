@@ -257,45 +257,43 @@ void main() {
     expect(randomInt, lessThan(15));
   });
 
-  test("JniGlobalRef", () {
-    var random = jni.newInstance("java/util/Random", "()V", []);
-    var rg = random.getGlobalRef();
-    random.delete();
-    Future.microtask(() {
-      var env = jni.getEnv();
-      var random = JniObject.fromGlobalRef(env, rg);
-      var randomInt = random.callIntMethodByName("nextInt", "(I)I", [256]);
-      expect(randomInt, lessThan(256));
-      random.delete();
-    }).then((_) => rg.deleteIn(jni.getEnv()));
-  });
-
   test("Isolate", () {
     Isolate.spawn(doSomeWorkInIsolate, null);
   });
 
-  test("JniGlobalRef 2", () async {
+  // JniObject is valid only in thread it is obtained
+  // so it can be safely shared with a function that can run in
+  // different thread.
+  //
+  // Eg: Dart has a thread pool, which means async methods may get scheduled
+  // in different thread.
+  //
+  // In that case, convert the JniObject into `JniGlobalObjectRef` using
+  // getGlobalRef() and reconstruct the object in use site using fromJniObject
+  // constructor.
+  test("JniGlobalRef", () async {
     var uri = jni.invokeObjectMethod(
         "java/net/URI",
         "create",
         "(Ljava/lang/String;)Ljava/net/URI;",
         ["https://www.google.com/search"]);
     var rg = uri.getGlobalRef();
-	await Future.delayed(const Duration(seconds: 1), () {
+    await Future.delayed(const Duration(seconds: 1), () {
       var env = jni.getEnv();
       // Now comment this line & try to directly use uri local ref
-	  // in outer scope.
-	  //
-	  // You will likely get a segfault, because Future computation is running
-	  // in different thread.
-	  //
-	  // Therefore, don't share JniObjects across functions that can be scheduled
-	  // across threads, including async callbacks.
-	  var uri = JniObject.fromGlobalRef(env, rg);
-	  var scheme = uri.callStringMethodByName("getScheme", "()Ljava/lang/String;", []);
-	  expect(scheme, "https");
-	  uri.delete();
-	  rg.deleteIn(env);
+      // in outer scope.
+      //
+      // You will likely get a segfault, because Future computation is running
+      // in different thread.
+      //
+      // Therefore, don't share JniObjects across functions that can be scheduled
+      // across threads, including async callbacks.
+      var uri = JniObject.fromGlobalRef(env, rg);
+      var scheme =
+          uri.callStringMethodByName("getScheme", "()Ljava/lang/String;", []);
+      expect(scheme, "https");
+      uri.delete();
+      rg.deleteIn(env);
     });
     uri.delete();
   });

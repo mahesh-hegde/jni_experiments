@@ -23,9 +23,9 @@ extension AdditionalJniEnvMethods on Pointer<JniEnv> {
   /// to dart string.
   String asDartString(JString jstring) {
     final chars = GetStringUTFChars(jstring, nullptr);
-	if (chars == nullptr) {
-		checkException();
-	}
+    if (chars == nullptr) {
+      checkException();
+    }
     final result = chars.cast<Utf8>().toDartString();
     ReleaseStringUTFChars(jstring, chars);
     return result;

@@ -41,7 +41,7 @@ class JniClass {
     final jvArgs = JValueArgs(args, _env);
     final newObj = _env.NewObjectA(_cls, ctor, jvArgs.values);
     _env.checkException();
-	jvArgs.disposeIn(_env);
+    jvArgs.disposeIn(_env);
     calloc.free(jvArgs.values);
     return JniObject.of(_env, newObj, nullptr);
   }
