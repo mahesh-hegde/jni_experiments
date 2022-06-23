@@ -238,7 +238,7 @@ void main() {
     final out = jni.retrieveObjectField(
         "java/lang/System", "out", "Ljava/io/PrintStream;");
     // uncomment next line to see output
-	// (\n because test runner prints first char at end of the line)
+    // (\n because test runner prints first char at end of the line)
     //out.callVoidMethodByName(
     //    "println", "(Ljava/lang/Object;)V", ["\nWorks (Apparently)"]);
     out.delete();
@@ -252,14 +252,15 @@ void main() {
 
   // You can use() method on JniObject for using once and deleting
   test("use() method", () {
-	  var randomInt = jni.newInstance("java/util/Random", "()V", [])
-			  .use((random) => random.callIntMethodByName("nextInt", "(I)I", [15]));
-	  expect(randomInt, lessThan(15));
+    var randomInt = jni.newInstance("java/util/Random", "()V", []).use(
+        (random) => random.callIntMethodByName("nextInt", "(I)I", [15]));
+    expect(randomInt, lessThan(15));
   });
 
   test("JniGlobalRef", () {
     var random = jni.newInstance("java/util/Random", "()V", []);
     var rg = random.getGlobalRef();
+    random.delete();
     Future.microtask(() {
       var env = jni.getEnv();
       var random = JniObject.fromGlobalRef(env, rg);
@@ -267,11 +268,36 @@ void main() {
       expect(randomInt, lessThan(256));
       random.delete();
     }).then((_) => rg.deleteIn(jni.getEnv()));
-    random.delete();
   });
 
   test("Isolate", () {
     Isolate.spawn(doSomeWorkInIsolate, null);
+  });
+
+  test("JniGlobalRef 2", () async {
+    var uri = jni.invokeObjectMethod(
+        "java/net/URI",
+        "create",
+        "(Ljava/lang/String;)Ljava/net/URI;",
+        ["https://www.google.com/search"]);
+    var rg = uri.getGlobalRef();
+	await Future.delayed(const Duration(seconds: 1), () {
+      var env = jni.getEnv();
+      // Now comment this line & try to directly use uri local ref
+	  // in outer scope.
+	  //
+	  // You will likely get a segfault, because Future computation is running
+	  // in different thread.
+	  //
+	  // Therefore, don't share JniObjects across functions that can be scheduled
+	  // across threads, including async callbacks.
+	  var uri = JniObject.fromGlobalRef(env, rg);
+	  var scheme = uri.callStringMethodByName("getScheme", "()Ljava/lang/String;", []);
+	  expect(scheme, "https");
+	  uri.delete();
+	  rg.deleteIn(env);
+    });
+    uri.delete();
   });
 }
 
