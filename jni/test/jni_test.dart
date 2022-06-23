@@ -257,6 +257,13 @@ void main() {
     expect(randomInt, lessThan(15));
   });
 
+  test("enums", () {
+	// Don't forget to escape $ in nested type names
+	var ordinal = jni.retrieveObjectField("java/net/Proxy\$Type", "HTTP", "Ljava/net/Proxy\$Type;")
+			.use((f) => f.callIntMethodByName("ordinal", "()I", []));
+	expect(ordinal, equals(1));
+  });
+
   test("Isolate", () {
     Isolate.spawn(doSomeWorkInIsolate, null);
   });
@@ -297,6 +304,7 @@ void main() {
     });
     uri.delete();
   });
+
 }
 
 void doSomeWorkInIsolate(Void? _) {
