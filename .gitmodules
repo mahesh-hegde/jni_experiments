@@ -1,3 +1,0 @@
-[submodule "jni/third_party/ffigen_patch_jni"]
-	path = jni/third_party/ffigen_patch_jni
-	url = https://github.com/mahesh-hegde/ffigen_patch_jni
